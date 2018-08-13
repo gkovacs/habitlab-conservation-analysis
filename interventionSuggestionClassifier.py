@@ -1,15 +1,15 @@
 # process data
-from collections import Counter
+#from collections import Counter
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from dataUtil import *
 import numpy as np
 
-from urllib.parse import urlparse
+#from urllib.parse import urlparse
 import pickle
 
-from data_visulization_util import chisquare, print_acceptance_rate, linear, plot_dictionary, time_period, \
-    select_timestamp
+#from data_visulization_util import chisquare, print_acceptance_rate, linear, plot_dictionary, time_period, \
+#    select_timestamp
 
 with open("user_took_action.json", 'rb') as lc:
     raw = json.load(lc)
