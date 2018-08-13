@@ -67,7 +67,7 @@ for user in user_to_suggestions:
             log["period_of_day"] = "afternoon"
         else:
             log["period_of_day"] = "evening"
-
+print(user_to_suggestions)
 # train
 
 # evaluate
