@@ -198,7 +198,11 @@ def parse_goal_log_for_user(userid, is_breaking_goal_list = True):
         with open("data.txt",encoding='utf-8', mode = 'r') as f:
             raw = f.read()
         parsed_raw = json.loads(raw)
-        '''
+    '''
+
+    for i in range(len(parsed_raw)):
+        if "goal_list" in parsed_raw[i]:
+            parsed_raw[i]["prev_enabled_goals"] = []
 
 
     if is_breaking_goal_list:

@@ -13,6 +13,9 @@ from collections import Counter
 import numpy as np
 import os.path
 import time
+from scipy import stats
+
+
 '''
 Helpers
 '''
@@ -79,10 +82,12 @@ for log in raw:
 
 for userid in userIDs:
 
-    if user_to_install_version.get(userid, "0.0.0") >= "1.0.231": continue
-
     if idx %100 == 0: print(str(idx) + '/' + str(len(userIDs)))
     idx += 1
+
+    #if idx == 1000: break
+    if user_to_install_version.get(userid, "0.0.0") <= "1.0.231": continue
+
 
     goal_log = parse_goal_log_for_user(userid, is_breaking_goal_list=False)
     goal_log = sorted(goal_log, key=get_time_stamp)
@@ -220,21 +225,34 @@ for userid in userIDs:
     #user_to_fb_ytb_to_other_unproductive_time_after[userid] = day_to_fb_ytb_unproductive_time_to_others
 
 for user in user_to_ungoal_time_comparison:
-    user_to_ungoal_time_comparison[user].pop(len(user_to_ungoal_time_comparison[user] - 1))
+    user_to_ungoal_time_comparison[user].pop(len(user_to_ungoal_time_comparison[user]) - 1)
 
 user_to_enable_disable = dict()
-
+enabled_net_change = []
+disabled_net_change = []
 for user in user_to_ungoal_time_comparison:
+    if len(user_to_ungoal_time_comparison[user]) == 0: continue
+    user_to_ungoal_time_comparison[user] = np.array(user_to_ungoal_time_comparison[user])[..., 1] - \
+                                           np.array(user_to_ungoal_time_comparison[user])[..., 0]
+    enabled_net_change.append(np.mean([item for x, item in enumerate(user_to_ungoal_time_comparison[user]) if
+                                   user_to_goal_type[user][x] and item != 0]))
+    disabled_net_change.append(np.mean([item for x, item in enumerate(user_to_ungoal_time_comparison[user]) if
+                                    not user_to_goal_type[user][x] and item != 0]))
 
-    user_to_ungoal_time_comparison[user] = np.array(user_to_ungoal_time_comparison[user])[..., 0] - \
-                                           np.array(user_to_ungoal_time_comparison[user])[..., 1]
-    enabled_net_change = sum([item for x,item in enumerate(user_to_ungoal_time_comparison[user]) if user_to_goal_type[user][x]])
-    disabled_net_change = sum([item for x,item in enumerate(user_to_ungoal_time_comparison[user]) if not user_to_goal_type[user][x]])
-
+'''
 print(np.average(list(user_to_total_unproductive_time_before.values())) * 2.7778e-7)
 data_total = [np.mean(list(user_to_total_unproductive_time_after[x].values())) for x in user_to_total_unproductive_time_after]
 print(np.nanmean(data_total))
 print(np.nanmedian(data_total))
+'''
+enabled_net_change = [x for x in enabled_net_change if not np.isnan(x)]
+disabled_net_change = [x for x in disabled_net_change if not np.isnan(x)]
+
+print(np.nanmedian(enabled_net_change))
+print(np.nanmedian(disabled_net_change))
+stats.ttest_ind(enabled_net_change, disabled_net_change)
+
+
 '''
 print(np.average(list(user_to_fb_ytb_to_other_unproductive_time_before.values())) * 2.7778e-7)
 data_fb_to_others = [np.mean(list(user_to_fb_ytb_to_other_unproductive_time_after[x].values())) for x in user_to_fb_ytb_to_other_unproductive_time_before]

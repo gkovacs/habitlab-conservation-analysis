@@ -23,7 +23,7 @@ for user in userIDs:
     if idx % 100 == 0: print(str(idx) + '/' + str(len(userIDs)))
     idx += 1
 
-    if user_to_install_version.get(user, "0.0.0") >= "1.0.231": continue
+    if user_to_install_version.get(user, "0.0.0") <= "1.0.231": continue
 
     domain_to_time_per_day[user] = Counter()
     link = "http://localhost:5000/printcollection?collection=" + user + "_synced:baseline_time_on_domains"

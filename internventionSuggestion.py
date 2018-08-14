@@ -1,17 +1,15 @@
 from collections import Counter
 
 import matplotlib.pyplot as plt
-import numpy as np
-import json
-from scipy import stats
-from urllib.request import urlopen
-import os
-from scipy.optimize import curve_fit
 from dataUtil import *
 
 from urllib.parse import urlparse
 import pickle
-with open("user_took_action.txt", 'rb') as lc:
+
+from data_visulization_util import chisquare, print_acceptance_rate, linear, plot_dictionary, time_period, \
+    select_timestamp
+
+with open("user_took_action.json", 'rb') as lc:
     raw = json.load(lc)
 
 with open("domain_to_productivity.json", 'rb') as lc:
@@ -32,24 +30,6 @@ def is_blacklisted(item):
   if item['userid'] == 'd8ae5727ab27f2ca11e331fe':
     return True
   return
-
-def chisquare(dictionary):
-    contigency_matrix = [[],[]]
-
-    for line in dictionary:
-        acc = 0
-        rej = 0
-        #print(line)
-        for item in dictionary[line]:
-            if item["action"] == "accepted":
-                acc += 1
-            else:
-                rej += 1
-
-        contigency_matrix[0].append(acc)
-        contigency_matrix[1].append(rej)
-    print(contigency_matrix)
-    return stats.chi2_contingency(contigency_matrix)
 
 
 raw = [x for x in raw if not is_blacklisted(x)]
@@ -142,68 +122,6 @@ print("overall")
 print(acc/len(raw))
 print("---------------interventions---------------")
 
-
-def print_acceptance_rate(dictionary):
-    for line in dictionary:
-        acc_int = 0
-        for item in dictionary[line]:
-            if item['action'] == 'accepted': acc_int += 1
-        print(line)
-        print(acc_int / len(dictionary[line]))
-
-def bin_confidence(p, n):
-    print([p, n])
-    return 1.96 * np.sqrt(p*(1- p)/n)
-
-def linear(x, a, b):
-    return a + np.multiply(x,b)
-
-def plot_dictionary(dictionary, isRegression = False, func = None):
-    acc_rate = dict()
-    p = []
-    n = []
-    for line in sorted(dictionary.keys()):
-        acc_int = 0
-        for item in dictionary[line]:
-            if item['action'] == 'accepted': acc_int += 1
-        acc_rate[line] = (acc_int / len(dictionary[line]))
-        p.append(acc_rate[line])
-        n.append(len(dictionary[line]))
-    p = np.array(p)
-    n = np.array(n)
-    plt.figure()
-    plt.barh(range(len(acc_rate)), list(acc_rate.values()), align='center', xerr=bin_confidence(p, n))
-    plt.yticks(range(len(acc_rate)), list(acc_rate.keys()))
-    plt.show()
-
-    if isRegression and func:
-        dellist = []
-        for i in range(len(p))[::-1]:
-            if p[i] == 0:
-                dellist.append(i)
-        ydata = np.log(p)
-        xdata = np.array(sorted(dictionary.keys()))
-        err =  np.log(bin_confidence(p, n))
-
-
-
-        ydata = np.delete(ydata, dellist)
-        xdata = np.delete(xdata, dellist)
-        err = np.delete(err, dellist)
-
-        params, cov = curve_fit(func, xdata, ydata, sigma = err)
-        residuals = ydata - func(xdata, float(params[0]), float(params[1]))
-        ss_red = np.sum(residuals ** 2)
-        ss_tot = np.sum((ydata - np.mean(ydata)) ** 2)
-        r_sq = 1 - (ss_red / ss_tot)
-        plt.figure()
-        plt.title("log regression")
-        plt.ylabel("log(acceptance rate)")
-        plt.errorbar(xdata, ydata, err)
-        plt.plot(xdata, func(xdata, params[0], params[1]), 'r-', label='fit: a=%5.3f, b=%5.3f' % tuple(params))
-        print('R^2 = %1.3f' % r_sq)
-    return acc_rate
-
 print_acceptance_rate(unique_interventions)
 print("-----------days of the week---------------")
 print_acceptance_rate(days_of_week)
@@ -219,7 +137,7 @@ print_acceptance_rate(day_since_install)
 plot_dictionary(day_since_install, True, linear)
 print("----------------interventions-------------")
 print_acceptance_rate(unique_interventions)
-plot_dictionary(unique_interventions)
+acceptance_rate = plot_dictionary(unique_interventions)
 
 print("----------------difficulty----------------")
 print("------total-----")
@@ -235,16 +153,6 @@ for line in raw:
         line['action'] == 0
     if line['action'] == 'accepted':
         line['action'] == 1
-
-def time_period(hour):
-    if 0 <= int(hour) < 6:
-        return 'midnight'
-    if 6 <= int(hour) <= 12:
-        return 'morning'
-    if 12 < int(hour) <= 18:
-        return 'afternoon'
-    if 18 < int(hour) < 24:
-        return 'evening'
 
 x_input = []
 day_number = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, "Sat": 6, "Sun": 7}
@@ -273,8 +181,6 @@ with open("x_input", 'wb') as f:
 print("-------------CHISQUARE------------------------")
 print(chisquare(difficulty_to_intervention))
 print("------------------------------------------")
-def select_timestamp(line):
-    return line["timestamp"]
 # sort lines in user by their timestamp
 for user in user_to_decision:
     user_to_decision[user] = sorted(user_to_decision[user], key=select_timestamp)

@@ -36,6 +36,6 @@ rfe = rfe.fit(x_input, y_output )
 print(rfe.support_)
 print(rfe.ranking_)
 
-logit_model=sm.Logit(y_output,x_input)
+logit_model=sm.Logit(y_output, x_input)
 result=logit_model.fit()
 print(result.summary())
