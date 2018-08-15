@@ -12,7 +12,7 @@ import tldextract
 from collections import Counter
 import numpy as np
 import os.path
-
+import time
 '''
 Helpers
 '''
@@ -51,9 +51,9 @@ for user in domain_to_time_per_day:
 
             # since users always have goals for facebook and youtube...
             if website in ["facebook", "youtube"]:
-                user_to_fb_ytb_to_other_unproductive_time_before[user][0] += domain_to_time_per_day[user][website]
+                user_to_fb_ytb_to_other_unproductive_time_before[user][0] += domain_to_time_per_day[user][website]/1000
             elif website not in ["facebook", "youtube"] and d2productivity[website] < 0:
-                user_to_fb_ytb_to_other_unproductive_time_before[user][1] += domain_to_time_per_day[user][website]
+                user_to_fb_ytb_to_other_unproductive_time_before[user][1] += domain_to_time_per_day[user][website]/1000
 
 
 
@@ -67,8 +67,19 @@ user_to_goal_type = dict()
 link = "http://localhost:5000/get_user_to_is_logging_enabled"
 userIDs = set(parse_url_as_json(link))
 idx = 0
+
+link = "http://localhost:5000/get_installs"
+raw = parse_url_as_json(link)
+user_to_install_version = dict()
+for log in raw:
+    try:
+        user_to_install_version[log["user_id"]] = log["version"]
+    except KeyError:
+        print(log)
+
 for userid in userIDs:
 
+    if user_to_install_version.get(userid, "0.0.0") >= "1.0.231": continue
 
     if idx %100 == 0: print(str(idx) + '/' + str(len(userIDs)))
     idx += 1
@@ -82,7 +93,7 @@ for userid in userIDs:
     seconds_on_domain_per_day = json.loads(f2.decode('utf-8'))
     # filter out older version where habitlab doesn't track all websites.
     seconds_on_domain_per_day = [x for x in seconds_on_domain_per_day if
-                                 x.get("habitlab_version", "0.0.0") > "1.0.231"]
+                                 x.get("habitlab_version", "0.0.0") >= "1.0.231"]
     # filter those productive websites
     seconds_on_domain_per_day = [x for x in seconds_on_domain_per_day if
                                  d2productivity.get(tldextract.extract(x["key"]).domain, 0) < 0]
@@ -120,6 +131,7 @@ for userid in userIDs:
             if line["key2"] == first_day:
                 website_to_log[web].pop(i)
 
+    website_to_log = {x:website_to_log[x] for x in website_to_log if website_to_log[x] != []}
     day_to_unproductive_time_total = Counter()
     #day_to_fb_ytb_unproductive_time_to_others = dict()
 
@@ -134,12 +146,15 @@ for userid in userIDs:
     group_time = [[user_to_fb_ytb_to_other_unproductive_time_before[userid][1], 0]]
     group_goal_type = []
     num_log = 0
-    while num_log < len(goal_log) - 1:
+    while num_log < len(goal_log):
         is_enable = True
         prev = goal_log[num_log]["timestamp_local"]
-        aft = goal_log[num_log + 1]["timestamp_local"]
+        if num_log == len(goal_log) - 1:
+            aft = int(time.time() * 1000)
+        else:
+            aft = goal_log[num_log + 1]["timestamp_local"]
         prev_goals = list(goal_log[num_log].get('prev_enabled_goals'))
-        after_goals = list(goal_log[num_log + 1].get('prev_enabled_goals'))
+        after_goals = list(goal_log[num_log].get('enabled_goals'))
 
         """
         next_goal = goal_log[num_log].get('goal_name', goal_log[num_log]['goal_list'])
@@ -153,9 +168,20 @@ for userid in userIDs:
 
         group_goal_type.append(goal_log[num_log]["type"] == "goal_enabled")
         # strip the goals to website names
-        prev_goals = [x.split("/")[0] for x in prev_goals]
-        after_goals = [x.split("/")[0] for x in after_goals]
+        #prev_goals = [x.split("/")[0] for x in prev_goals]
+        for i in range(len(prev_goals)):
+            if prev_goals[i].split("/")[0] != "custom":
+                prev_goals[i] = prev_goals[i].split("/")[0]
+            else:
+                prev_goals[i] = tldextract.extract(prev_goals[i].split("/")[1].split("_")[3]).domain
 
+        for i in range(len(after_goals)):
+            if after_goals[i].split("/")[0] != "custom":
+                after_goals[i] = after_goals[i].split("/")[0]
+            else:
+                after_goals[i] = tldextract.extract(after_goals[i].split("/")[1].split("_")[3]).domain
+
+        '''
         # strip the "generated" sites goals into website names
         for i, goal in enumerate(prev_goals):
             if "generated" in goal:
@@ -164,28 +190,46 @@ for userid in userIDs:
         for i, goal in enumerate(after_goals):
             if "generated" in goal:
                 after_goals[i] = goal.split("_")[1]
+        '''
 
+        group_time.append([0, 0])
         for web in website_to_log:
-            if web not in prev_goals:
-                temp = {x: website_to_log[web][x] for x in website_to_log[web] if
-                        website_to_log[web][x]["timestamp_local"] <
-                        aft}
-                temp = {x: temp[x] for x in temp if temp[x]["timestamp_local"] > prev}
-                sum_time = sum([temp[t]["val"] for t in temp])
+            web_domain = tldextract.extract(web).domain
+            if web_domain not in prev_goals:
+                temp = [x for x in website_to_log[web] if
+                        x["timestamp_local"] <
+                        aft]
+                temp = [x for x in temp if x["timestamp_local"] > prev]
+
+                sum_time = sum([t["val"] for t in temp])
                 group_time[num_log][1] += sum_time
-                group_time.append([0, 0])
-            if web not in prev_goals and web not in after_goals:
-                temp = {x: website_to_log[web][x] for x in website_to_log[web] if
-                        website_to_log[web][x]["timestamp_local"] <
-                        aft}
-                temp = {x: temp[x] for x in temp if temp[x]["timestamp_local"] > prev}
-                sum_time = sum([temp[t]["val"] for t in temp])
+
+            if web_domain not in prev_goals and web_domain not in after_goals:
+                temp = [x for x in website_to_log[web] if
+                        x["timestamp_local"] < aft]
+                temp = [x for x in temp if x["timestamp_local"] > prev]
+
+                sum_time = sum([t["val"] for t in temp])
                 group_time[num_log + 1][0] += sum_time
+
+        num_log += 1
     user_to_ungoal_time_comparison[userid] = group_time
     user_to_goal_type[userid] = group_goal_type
 
     user_to_total_unproductive_time_after[userid] = day_to_unproductive_time_total
     #user_to_fb_ytb_to_other_unproductive_time_after[userid] = day_to_fb_ytb_unproductive_time_to_others
+
+for user in user_to_ungoal_time_comparison:
+    user_to_ungoal_time_comparison[user].pop(len(user_to_ungoal_time_comparison[user] - 1))
+
+user_to_enable_disable = dict()
+
+for user in user_to_ungoal_time_comparison:
+
+    user_to_ungoal_time_comparison[user] = np.array(user_to_ungoal_time_comparison[user])[..., 0] - \
+                                           np.array(user_to_ungoal_time_comparison[user])[..., 1]
+    enabled_net_change = sum([item for x,item in enumerate(user_to_ungoal_time_comparison[user]) if user_to_goal_type[user][x]])
+    disabled_net_change = sum([item for x,item in enumerate(user_to_ungoal_time_comparison[user]) if not user_to_goal_type[user][x]])
 
 print(np.average(list(user_to_total_unproductive_time_before.values())) * 2.7778e-7)
 data_total = [np.mean(list(user_to_total_unproductive_time_after[x].values())) for x in user_to_total_unproductive_time_after]
