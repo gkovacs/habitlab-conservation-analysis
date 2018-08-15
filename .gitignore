@@ -1,0 +1,4 @@
+.getsecret.yaml
+__pycache__/*
+sessions_for_intervention.csv
+.ipynb_checkpoints

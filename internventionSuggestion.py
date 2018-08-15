@@ -246,7 +246,7 @@ for user in user_to_decision:
         last_seen_to_action[l] = (user_to_decision[user]["action"] == 'rejected')
 
 plt.figure()
-plt.hist(list(last_seen_to_action.keys()), last_seen_to_action.values())
+plt.hist(list(last_seen_to_action.keys()), np.array(list(last_seen_to_action.values()))//)
 plt.ylabel("percentage of acceptance")
 plt.xlabel("time since last one")
 plt.title("Intervention Suggestions")
