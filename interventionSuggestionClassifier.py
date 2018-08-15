@@ -122,7 +122,6 @@ for user in user_to_suggestions:
         #log["website"] = log["intervention"].split("/")[0]
         log["unique_intervention"] = log["intervention"].split("/")[1]
 
-        #log["baseline_time"] = user_to_domain_to_time_per_day[user][log["website"]]
 
         log["is_start"] = is_start[i]
         log["last_time_seen"] = timedifference[i]
@@ -176,20 +175,35 @@ for line in user_to_suggestions.values():
         data.append(x)
 
 
+last_time_seen_avg = np.mean([x["last_time_seen"] for x in data if x["last_time_seen"] != -1])
+since_install_avg = np.mean([x["since_install"] for x in data if x["since_install"] != -1])
+baseline_avg = np.mean([x["baseline"] for x in data if x["baseline"] != -1])
 
-x_data_str = np.array([np.array(
-    [x["day"], x['is_start'], x['last_time_seen'], x['period_of_day'], x['unique_intervention'],
-     x["since_install"], x["has_install"], x["baseline"], x["has_baseline"]]
-) for x in data])
+x_data_str = np.array([])
+for x in data:
+    if x["last_time_seen"] == -1:
+        x["last_time_seen"] = last_time_seen_avg
+
+    if x["since_install"] == -1:
+        x["since_install"] = since_install_avg
+
+    if x["baseline"] == -1:
+        x["baseline"] = since_install_avg
+
+    x_data_str = np.append(x_data_str,
+              np.array([x["day"], x['last_time_seen'], x['period_of_day'],
+                         #x['unique_intervention'],
+                        x["since_install"], x["baseline"], x["has_baseline"], x["is_start"]]))
+x_data_str = np.reshape(x_data_str, [-1, 7])
 one_hot_data = one_hot_encode_data(x_data_str[..., 0])
 x_data_str = np.append(x_data_str, one_hot_data, axis = 1)
-one_hot_data = one_hot_encode_data(x_data_str[..., 3])
+one_hot_data = one_hot_encode_data(x_data_str[..., 2])
 x_data_str = np.append(x_data_str, one_hot_data, axis = 1)
-one_hot_data = one_hot_encode_data(x_data_str[..., 4])
-x_data_str = np.append(x_data_str, one_hot_data, axis = 1)
+#one_hot_data = one_hot_encode_data(x_data_str[..., 3])
+#x_data_str = np.append(x_data_str, one_hot_data, axis = 1)
 
 mask = np.ones(len(x_data_str[0]), dtype=bool)
-mask[[0,3, 4]] = False
+mask[[0,2]] = False
 x_data = x_data_str[...,mask]
 for line in data:
     if line["accepted"] == 'true':
@@ -199,10 +213,10 @@ for line in data:
 #x_data[..., 1] = (x_data[..., 1] - np.mean(x_data[..., 1]))/ np.var(x_data)
 #x_data[..., 2] = (x_data[..., 2] - np.mean(x_data[..., 2]))/ np.var(x_data)
 
-## dump csv data
+# dump csv data
 
 
-#print(user_to_suggestions)
+# print(user_to_suggestions)
 
 # y_data =
 
@@ -213,12 +227,14 @@ batch_size = 128
 n_epochs = 25
 data_batcher = DataBatcher(x_data, y_data, 10)
 
-""""""
+
 model = keras.Sequential([
     keras.layers.Flatten(),
-    keras.layers.Dense(128, activation=tf.nn.relu),
-    keras.layers.Dense(256, activation=tf.nn.relu),
-    tf.keras.layers.Dropout(0.2),
+    keras.layers.Dense(80, activation=tf.nn.relu),
+    keras.layers.Dense(60, activation=tf.nn.relu),
+    keras.layers.Dense(40, activation=tf.nn.relu),
+    keras.layers.Dense(20, activation=tf.nn.relu),
+    tf.keras.layers.Dropout(0.5),
     keras.layers.Dense(2, activation=tf.nn.softmax)
 ])
 

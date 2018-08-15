@@ -14,7 +14,7 @@ import numpy as np
 import os.path
 import time
 from scipy import stats
-
+import matplotlib.pyplot as plt
 
 '''
 Helpers
@@ -251,7 +251,8 @@ disabled_net_change = [x for x in disabled_net_change if not np.isnan(x)]
 print(np.nanmedian(enabled_net_change))
 print(np.nanmedian(disabled_net_change))
 stats.ttest_ind(enabled_net_change, disabled_net_change)
-
+plt.bar(["enabled", "disabled"], [np.nanmedian(enabled_net_change), np.nanmedian(disabled_net_change)],align='center',
+        yerr = [np.nanstd(enabled_net_change), np.nanstd(disabled_net_change)])
 
 '''
 print(np.average(list(user_to_fb_ytb_to_other_unproductive_time_before.values())) * 2.7778e-7)

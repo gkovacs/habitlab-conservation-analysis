@@ -11,6 +11,8 @@ with open(r"log_data\users_to_conditions_in_experiment_by_name", 'rb') as lc:
 user_to_uninstall_times = parse_url_as_json("http://localhost:5000/get_user_to_all_uninstall_times")
 user_to_uninstall_times = {k: max(user_to_uninstall_times[k]) for k in user_to_uninstall_times}
 user_to_install_times = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
+user_to_install_times_multiple = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
+
 user_to_install_times = {k: min(user_to_install_times[k]) for k in user_to_install_times}
 user_to_is_alive = dict()
 
@@ -35,7 +37,9 @@ for user in users_to_conditions_in_experiment_by_name:
     idx+= 1
     if user not in user_to_install_times:
         continue
-
+    else:
+        if len(user_to_install_times_multiple[user]) != 1:
+            continue
     link = "http://localhost:5000/get_last_intervention_seen_and_time?userid=" + user
     f = urlopen(link).read()
     last_visit = json.loads(f.decode('utf-8'))["time"]
@@ -51,7 +55,7 @@ for user in users_to_conditions_in_experiment_by_name:
     if users_to_conditions_in_experiment_by_name[user] == 'off':
         not_suggested.append([time_since_install/8.64e+7, int(is_alive)])
         intervention_suggestion.append([time_since_install/ 8.64e+7, int(is_alive), 0])
-    else:
+    elif users_to_conditions_in_experiment_by_name[user] == 'always':
         suggested.append([time_since_install/8.64e+7, int(is_alive), 1])
         intervention_suggestion.append([time_since_install/ 8.64e+7, int(is_alive), 1])
 

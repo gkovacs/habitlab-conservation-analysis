@@ -18,9 +18,12 @@ with open("domain_to_productivity.json", 'rb') as lc:
 with open("interventionDifficulty", 'rb') as lc:
     intervention_to_difficulty = json.load(lc)
 
+with open("log_data\\users_to_conditions_in_experiment_by_name", 'rb') as lc:
+    users_to_conditions_in_experiment_by_name = json.load(lc)
+
 user_to_installtime = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
 user_to_installtime = {k: min(user_to_installtime[k]) for k in user_to_installtime}
-
+user_to_installtime_multiple = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
 # filter Geza
 def is_blacklisted(item):
   if 'developer_mode' in item:
@@ -46,7 +49,8 @@ keys = raw[0].keys()
 difficulty_to_intervention = dict()
 website_to_difficulty_to_intervention = dict()
 user_to_decision = dict()
-
+user_to_yes = dict()
+frequency_to_acceptance = dict()
 for line in raw:
     timestamp = line['timestamp_local']
     if line['userid'] in user_to_installtime:
@@ -107,6 +111,21 @@ for line in raw:
     else:
         time_of_day[time].append(line)
 
+    if line['userid'] in user_to_installtime_multiple:
+        if len(user_to_installtime_multiple[line['userid']]) != 1:
+            continue
+
+    # sort into frequency
+    try:
+        condition = users_to_conditions_in_experiment_by_name[line["userid"]]
+    except KeyError:
+        continue
+
+    if condition not in frequency_to_acceptance:
+        frequency_to_acceptance[condition] = [line]
+    else:
+        frequency_to_acceptance[condition].append(line)
+
 website_to_difficulty_to_intervention = {x:dict() for x in websites}
 
 for website in website_to_difficulty_to_intervention:
@@ -138,6 +157,10 @@ plot_dictionary(day_since_install, True, linear)
 print("----------------interventions-------------")
 print_acceptance_rate(unique_interventions)
 acceptance_rate = plot_dictionary(unique_interventions)
+print("----------------frequency-------------")
+print_acceptance_rate(frequency_to_acceptance)
+plot_dictionary(frequency_to_acceptance)
+
 
 print("----------------difficulty----------------")
 print("------total-----")
@@ -195,7 +218,61 @@ for user in user_to_decision:
         user_to_num_acc[user] = 0
 plt.figure()
 plt.hist(list(user_to_num_acc.values()), alpha=0.5)
-plt.xlabel("# of acceptance")
 plt.ylabel("# of users")
+plt.xlabel("# of acceptance")
+
+user_to_acc_rate = dict()
+
+for user in user_to_decision:
+    user_to_acc_rate[user] = user_to_num_acc[user]/ len(user_to_decision[user])
+
+plt.figure()
+plt.hist(list(user_to_acc_rate.values()), alpha=0.5)
+plt.ylabel("# of users")
+plt.xlabel("percentage of acceptance")
+plt.title("Intervention Suggestions")
+
+for user in user_to_decision:
+    user_to_decision[user] = sorted(user_to_decision[user], key = lambda x: x["timestamp_local"])
+
+last_seen_to_action = dict()
+
+for user in user_to_decision:
+    timestamps = [x["timestamp"] for x in user_to_decision[user]]
+    timestamps = sorted(timestamps)
+    last_seens = np.roll(timestamps, 1) - timestamps
+    last_seens[0] = -1
+    for l in last_seens:
+        last_seen_to_action[l] = (user_to_decision[user]["action"] == 'rejected')
+
+plt.figure()
+plt.hist(list(last_seen_to_action.keys()), last_seen_to_action.values())
+plt.ylabel("percentage of acceptance")
+plt.xlabel("time since last one")
+plt.title("Intervention Suggestions")
+
+'''
+num_acc_to_median_spent_on_goal = dict()
+idx = 0
+for user in user_to_num_acc:
+    if idx % 100 == 0: print(str(idx) + '/' + str(len(user_to_num_acc)))
+    idx += 1
+    num = user_to_num_acc[user]
+    if user in user_to_installtime_multiple:
+        if len(user_to_installtime_multiple[line['userid']]) != 1:
+            continue
+
+    if num in num_acc_to_median_spent_on_goal:
+        num_acc_to_median_spent_on_goal[user_to_num_acc[user]].append(calculate_user_sec_on_goal_per_day(user))
+    else:
+        num_acc_to_median_spent_on_goal[user_to_num_acc[user]] = [calculate_user_sec_on_goal_per_day(user)]
+
+
+plt.figure()
+for num in num_acc_to_median_spent_on_goal:
+    plt.hist(list(num_acc_to_median_spent_on_goal[num]), alpha=0.5)
+
+plt.xlabel("secs on goals domain")
+'''
 #plt.axis([0, 10, 0, 600])
 #plt.grid(True)
