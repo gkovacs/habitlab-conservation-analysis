@@ -22,7 +22,7 @@ for intervention in intervention_to_attrition_rate:
     if (intervention in intervention_to_attrition_rate and
             intervention in acc_rate):
         try:
-            intervention_to_utility[intervention] = intervention_to_effectiveness.get(intervention) * acc_rate.get(
+            intervention_to_utility[intervention] = acc_rate.get(
                 intervention) / \
                                                     intervention_to_attrition_rate.get(intervention)
         except ZeroDivisionError:

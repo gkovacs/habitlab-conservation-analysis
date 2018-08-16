@@ -1,6 +1,7 @@
 import json
 from urllib.request import urlopen
-
+import tldextract
+import numpy as np
 def parse_url_as_json(link):
     f = urlopen(link).read()
     return json.loads(f.decode('utf-8'))
@@ -35,13 +36,13 @@ def bisection(array, value):
         return jl
 
 
-def is_habitlab_on(timestamp, log):
+def is_habitlab_on(timestamp, logs):
     '''
-            given a timestamp, and a log of the user goal_enabled log, determine
+            given a timestamp, and a collection of the user goal_enabled logs, determine
             if the habit lab is on at that timestamp. Assuming that log has been
             sorted according to the timestamp.
     '''
-    timestamp_list = [x["timestamp_local"] for x in log]
+    timestamp_list = [x["timestamp_local"] for x in logs]
     index = bisection(timestamp_list,
                       timestamp)  # [x["timestamp"] for x in log]the index of which the timestamp just falls after
     # print(str(index) + " " + str(timestamp_list[index]) + " " + str(timestamp))
@@ -50,9 +51,9 @@ def is_habitlab_on(timestamp, log):
     if index == -1:
         return False
 
-    if log[index]["type"] == "goal_enabled":
+    if logs[index]["type"] == "goal_enabled":
         return True
-    elif log[index]["type"] == "goal_disabled":
+    elif logs[index]["type"] == "goal_disabled":
         return False
 
     return
@@ -198,7 +199,11 @@ def parse_goal_log_for_user(userid, is_breaking_goal_list = True):
         with open("data.txt",encoding='utf-8', mode = 'r') as f:
             raw = f.read()
         parsed_raw = json.loads(raw)
-        '''
+    '''
+
+    for i in range(len(parsed_raw)):
+        if "goal_list" in parsed_raw[i]:
+            parsed_raw[i]["prev_enabled_goals"] = []
 
 
     if is_breaking_goal_list:
@@ -251,3 +256,47 @@ def clean_session_log(visits_on_w_per_day):
         visits_on_w_per_day.pop(p)
 
     return visits_on_w_per_day
+
+def calculate_user_sec_on_goal_per_day(user):
+    '''
+    Calculates the median time per day spent on goal website for a user.
+    :param user:
+    :return:
+    '''
+
+    logs = parse_goal_log_for_user(user)
+    link = "http://localhost:5000/printcollection?collection=" + user + "_synced:seconds_on_domain_per_day"
+    session_log = parse_url_as_json(link)
+
+    website_to_goal = dict()
+    website_to_sessions = dict()
+    for line in logs:
+        website = line["goal_name"].split('/')[0]
+        if website in website_to_goal:
+            website_to_goal[website].append(line)
+        else:
+            website_to_goal[website] = [line]
+
+    for website in website_to_goal:
+        website_to_goal[website] = sorted(website_to_goal[website], key=lambda x: x["timestamp_local"])
+
+    for line in session_log:
+        website = tldextract.extract(line["key"]).domain
+        if website in website_to_sessions:
+            website_to_sessions[website].append(line)
+        else:
+            website_to_sessions[website] = [line]
+
+    website_to_active_session = dict()
+    for website in website_to_sessions:
+        website_to_sessions[website] = clean_session_log(website_to_sessions[website])
+        if website in website_to_goal:
+            website_to_active_session[website] = [x for x in website_to_sessions[website]
+                                                  if is_habitlab_on(x["timestamp"], website_to_goal[website])]
+
+    website_to_median_time_spent = {x: np.nanmedian([y["timestamp"] for y in website_to_active_session[x]])
+                                    for x in website_to_active_session}
+
+    total = np.nansum(list(website_to_median_time_spent.values()))
+
+    return total

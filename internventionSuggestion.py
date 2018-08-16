@@ -1,17 +1,15 @@
 from collections import Counter
 
 import matplotlib.pyplot as plt
-import numpy as np
-import json
-from scipy import stats
-from urllib.request import urlopen
-import os
-from scipy.optimize import curve_fit
 from dataUtil import *
 
 from urllib.parse import urlparse
 import pickle
-with open("user_took_action.txt", 'rb') as lc:
+
+from data_visulization_util import chisquare, print_acceptance_rate, linear, plot_dictionary, time_period, \
+    select_timestamp
+
+with open("user_took_action.json", 'rb') as lc:
     raw = json.load(lc)
 
 with open("domain_to_productivity.json", 'rb') as lc:
@@ -20,9 +18,12 @@ with open("domain_to_productivity.json", 'rb') as lc:
 with open("interventionDifficulty", 'rb') as lc:
     intervention_to_difficulty = json.load(lc)
 
+with open("log_data\\users_to_conditions_in_experiment_by_name", 'rb') as lc:
+    users_to_conditions_in_experiment_by_name = json.load(lc)
+
 user_to_installtime = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
 user_to_installtime = {k: min(user_to_installtime[k]) for k in user_to_installtime}
-
+user_to_installtime_multiple = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
 # filter Geza
 def is_blacklisted(item):
   if 'developer_mode' in item:
@@ -32,24 +33,6 @@ def is_blacklisted(item):
   if item['userid'] == 'd8ae5727ab27f2ca11e331fe':
     return True
   return
-
-def chisquare(dictionary):
-    contigency_matrix = [[],[]]
-
-    for line in dictionary:
-        acc = 0
-        rej = 0
-        #print(line)
-        for item in dictionary[line]:
-            if item["action"] == "accepted":
-                acc += 1
-            else:
-                rej += 1
-
-        contigency_matrix[0].append(acc)
-        contigency_matrix[1].append(rej)
-    print(contigency_matrix)
-    return stats.chi2_contingency(contigency_matrix)
 
 
 raw = [x for x in raw if not is_blacklisted(x)]
@@ -66,7 +49,8 @@ keys = raw[0].keys()
 difficulty_to_intervention = dict()
 website_to_difficulty_to_intervention = dict()
 user_to_decision = dict()
-
+user_to_yes = dict()
+frequency_to_acceptance = dict()
 for line in raw:
     timestamp = line['timestamp_local']
     if line['userid'] in user_to_installtime:
@@ -127,6 +111,21 @@ for line in raw:
     else:
         time_of_day[time].append(line)
 
+    if line['userid'] in user_to_installtime_multiple:
+        if len(user_to_installtime_multiple[line['userid']]) != 1:
+            continue
+
+    # sort into frequency
+    try:
+        condition = users_to_conditions_in_experiment_by_name[line["userid"]]
+    except KeyError:
+        continue
+
+    if condition not in frequency_to_acceptance:
+        frequency_to_acceptance[condition] = [line]
+    else:
+        frequency_to_acceptance[condition].append(line)
+
 website_to_difficulty_to_intervention = {x:dict() for x in websites}
 
 for website in website_to_difficulty_to_intervention:
@@ -141,68 +140,6 @@ for website in website_to_difficulty_to_intervention:
 print("overall")
 print(acc/len(raw))
 print("---------------interventions---------------")
-
-
-def print_acceptance_rate(dictionary):
-    for line in dictionary:
-        acc_int = 0
-        for item in dictionary[line]:
-            if item['action'] == 'accepted': acc_int += 1
-        print(line)
-        print(acc_int / len(dictionary[line]))
-
-def bin_confidence(p, n):
-    print([p, n])
-    return 1.96 * np.sqrt(p*(1- p)/n)
-
-def linear(x, a, b):
-    return a + np.multiply(x,b)
-
-def plot_dictionary(dictionary, isRegression = False, func = None):
-    acc_rate = dict()
-    p = []
-    n = []
-    for line in sorted(dictionary.keys()):
-        acc_int = 0
-        for item in dictionary[line]:
-            if item['action'] == 'accepted': acc_int += 1
-        acc_rate[line] = (acc_int / len(dictionary[line]))
-        p.append(acc_rate[line])
-        n.append(len(dictionary[line]))
-    p = np.array(p)
-    n = np.array(n)
-    plt.figure()
-    plt.barh(range(len(acc_rate)), list(acc_rate.values()), align='center', xerr=bin_confidence(p, n))
-    plt.yticks(range(len(acc_rate)), list(acc_rate.keys()))
-    plt.show()
-
-    if isRegression and func:
-        dellist = []
-        for i in range(len(p))[::-1]:
-            if p[i] == 0:
-                dellist.append(i)
-        ydata = np.log(p)
-        xdata = np.array(sorted(dictionary.keys()))
-        err =  np.log(bin_confidence(p, n))
-
-
-
-        ydata = np.delete(ydata, dellist)
-        xdata = np.delete(xdata, dellist)
-        err = np.delete(err, dellist)
-
-        params, cov = curve_fit(func, xdata, ydata, sigma = err)
-        residuals = ydata - func(xdata, float(params[0]), float(params[1]))
-        ss_red = np.sum(residuals ** 2)
-        ss_tot = np.sum((ydata - np.mean(ydata)) ** 2)
-        r_sq = 1 - (ss_red / ss_tot)
-        plt.figure()
-        plt.title("log regression")
-        plt.ylabel("log(acceptance rate)")
-        plt.errorbar(xdata, ydata, err)
-        plt.plot(xdata, func(xdata, params[0], params[1]), 'r-', label='fit: a=%5.3f, b=%5.3f' % tuple(params))
-        print('R^2 = %1.3f' % r_sq)
-    return acc_rate
 
 print_acceptance_rate(unique_interventions)
 print("-----------days of the week---------------")
@@ -219,7 +156,11 @@ print_acceptance_rate(day_since_install)
 plot_dictionary(day_since_install, True, linear)
 print("----------------interventions-------------")
 print_acceptance_rate(unique_interventions)
-plot_dictionary(unique_interventions)
+acceptance_rate = plot_dictionary(unique_interventions)
+print("----------------frequency-------------")
+print_acceptance_rate(frequency_to_acceptance)
+plot_dictionary(frequency_to_acceptance)
+
 
 print("----------------difficulty----------------")
 print("------total-----")
@@ -235,16 +176,6 @@ for line in raw:
         line['action'] == 0
     if line['action'] == 'accepted':
         line['action'] == 1
-
-def time_period(hour):
-    if 0 <= int(hour) < 6:
-        return 'midnight'
-    if 6 <= int(hour) <= 12:
-        return 'morning'
-    if 12 < int(hour) <= 18:
-        return 'afternoon'
-    if 18 < int(hour) < 24:
-        return 'evening'
 
 x_input = []
 day_number = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, "Sat": 6, "Sun": 7}
@@ -273,8 +204,6 @@ with open("x_input", 'wb') as f:
 print("-------------CHISQUARE------------------------")
 print(chisquare(difficulty_to_intervention))
 print("------------------------------------------")
-def select_timestamp(line):
-    return line["timestamp"]
 # sort lines in user by their timestamp
 for user in user_to_decision:
     user_to_decision[user] = sorted(user_to_decision[user], key=select_timestamp)
@@ -289,7 +218,61 @@ for user in user_to_decision:
         user_to_num_acc[user] = 0
 plt.figure()
 plt.hist(list(user_to_num_acc.values()), alpha=0.5)
-plt.xlabel("# of acceptance")
 plt.ylabel("# of users")
+plt.xlabel("# of acceptance")
+
+user_to_acc_rate = dict()
+
+for user in user_to_decision:
+    user_to_acc_rate[user] = user_to_num_acc[user]/ len(user_to_decision[user])
+
+plt.figure()
+plt.hist(list(user_to_acc_rate.values()), alpha=0.5)
+plt.ylabel("# of users")
+plt.xlabel("percentage of acceptance")
+plt.title("Intervention Suggestions")
+
+for user in user_to_decision:
+    user_to_decision[user] = sorted(user_to_decision[user], key = lambda x: x["timestamp_local"])
+
+last_seen_to_action = dict()
+
+for user in user_to_decision:
+    timestamps = [x["timestamp"] for x in user_to_decision[user]]
+    timestamps = sorted(timestamps)
+    last_seens = np.roll(timestamps, 1) - timestamps
+    last_seens[0] = -1
+    for l in last_seens:
+        last_seen_to_action[l] = (user_to_decision[user]["action"] == 'rejected')
+
+plt.figure()
+plt.hist(list(last_seen_to_action.keys()), np.array(list(last_seen_to_action.values()))//)
+plt.ylabel("percentage of acceptance")
+plt.xlabel("time since last one")
+plt.title("Intervention Suggestions")
+
+'''
+num_acc_to_median_spent_on_goal = dict()
+idx = 0
+for user in user_to_num_acc:
+    if idx % 100 == 0: print(str(idx) + '/' + str(len(user_to_num_acc)))
+    idx += 1
+    num = user_to_num_acc[user]
+    if user in user_to_installtime_multiple:
+        if len(user_to_installtime_multiple[line['userid']]) != 1:
+            continue
+
+    if num in num_acc_to_median_spent_on_goal:
+        num_acc_to_median_spent_on_goal[user_to_num_acc[user]].append(calculate_user_sec_on_goal_per_day(user))
+    else:
+        num_acc_to_median_spent_on_goal[user_to_num_acc[user]] = [calculate_user_sec_on_goal_per_day(user)]
+
+
+plt.figure()
+for num in num_acc_to_median_spent_on_goal:
+    plt.hist(list(num_acc_to_median_spent_on_goal[num]), alpha=0.5)
+
+plt.xlabel("secs on goals domain")
+'''
 #plt.axis([0, 10, 0, 600])
 #plt.grid(True)
