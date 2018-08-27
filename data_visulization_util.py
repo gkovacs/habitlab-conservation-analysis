@@ -57,6 +57,8 @@ def plot_dictionary(dictionary, isRegression = False, func = None):
     plt.figure()
     plt.barh(range(len(acc_rate)), list(acc_rate.values()), align='center', xerr=bin_confidence(p, n))
     plt.yticks(range(len(acc_rate)), list(acc_rate.keys()))
+    plt.xlabel("acceptance rate")
+    plt.title("intervention suggestion difficulty to acceptance rate")
     plt.show()
 
     if isRegression and func:

@@ -42,6 +42,9 @@ def is_habitlab_on(timestamp, logs):
             if the habit lab is on at that timestamp. Assuming that log has been
             sorted according to the timestamp.
     '''
+    if logs == []:
+        return False
+
     timestamp_list = [x["timestamp_local"] for x in logs]
     index = bisection(timestamp_list,
                       timestamp)  # [x["timestamp"] for x in log]the index of which the timestamp just falls after
@@ -294,7 +297,7 @@ def calculate_user_sec_on_goal_per_day(user):
             website_to_active_session[website] = [x for x in website_to_sessions[website]
                                                   if is_habitlab_on(x["timestamp"], website_to_goal[website])]
 
-    website_to_median_time_spent = {x: np.nanmedian([y["timestamp"] for y in website_to_active_session[x]])
+    website_to_median_time_spent = {x: np.nanmedian([y["val"] for y in website_to_active_session[x]])
                                     for x in website_to_active_session}
 
     total = np.nansum(list(website_to_median_time_spent.values()))

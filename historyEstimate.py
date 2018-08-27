@@ -9,7 +9,9 @@ import pickle
 import tldextract
 from collections import Counter
 import numpy as np
-
+from scipy import stats
+import matplotlib.pyplot as plt
+from scipy.stats import sem
 '''
 Helpers
 '''
@@ -61,7 +63,7 @@ for userid in userIDs:
     website_to_log = dict()
     for line in seconds_on_domain_per_day:
         if line["key"] not in website_to_log:
-            website_to_log[line["key"]] = []
+            website_to_log[line["key"]] = [line]
         else:
             website_to_log[line["key"]].append(line)
 
@@ -85,6 +87,7 @@ for userid in userIDs:
 
     day_to_unproductive_time = Counter()
     for web in website_to_log:
+
         for line in website_to_log[web]:
             day_to_unproductive_time[line["key2"]] += line["val"]
 
@@ -106,11 +109,17 @@ data = [np.mean(list(precise_user_to_total_unproductive_time_after[x].values()))
 print(np.nanmean(data))
 print(np.nanmedian(data))
 
+
+with open("user_to_total_unproductive_time_before", "rb") as f:
+    user_to_total_unproductive_time_before = pickle.load(f)
+before = np.array(list(user_to_total_unproductive_time_before.values()))
+print(stats.ttest_ind(data, np.array(list(user_to_total_unproductive_time_before.values()))))
 #print(np.average(list(user_to_total_unproductive_time_after.values())))
 
-estimate_user_to_total_unproductive_time_after = dict()
+#estimate_user_to_total_unproductive_time_after = dict()
 
 
-
+plt.figure()
+plt.bar(["before", "after"], [np.nanmedian(before)/1000, np.nanmedian(data)], yerr = [sem(before/1000), sem(data)], align='center')
 
 

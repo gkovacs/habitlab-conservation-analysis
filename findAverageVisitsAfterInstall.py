@@ -12,7 +12,7 @@ from urllib.request import urlopen
 
 from dataUtil import parse_url_as_json, bisection, is_habitlab_on, get_time_stamp, calculate_goal_ungoal_time_for, \
     printProgressBar, is_not_to_keep, parse_goal_log_for_user, clean_session_log
-
+import pickle
 link = "http://localhost:5000/get_user_to_all_install_times"
 user_to_installtime = parse_url_as_json(link)
 user_to_installtime = {k: min(user_to_installtime[k]) for k in user_to_installtime}
@@ -43,7 +43,7 @@ for w in we:
 printProgressBar(0, len(userIDs), prefix='Progress:', suffix='Complete', length=50)
 
 for userid in userIDs:
-    # if idx % 100 == 0: print(str(idx) + "/" + str(len(userIDs)))
+    if idx % 100 == 0: print(str(idx) + "/" + str(len(userIDs)))
     # os.system('cls')
     printProgressBar(idx, len(userIDs), prefix="Progress: ", suffix='Users Complete', length=50)
 
@@ -61,7 +61,10 @@ for userid in userIDs:
     # filter users used HabitLab for under certain time
     UNDER_CERTAIN_TIME = 7 * 8.64e+7
     link = "http://localhost:5000/get_last_intervention_seen_and_time?userid=" + userid
-    last_time_seen_intervention = parse_url_as_json(link)['time']
+    try:
+        last_time_seen_intervention = parse_url_as_json(link)['time']
+    except KeyError:
+        continue
     if last_time_seen_intervention == None:
         continue
 
@@ -201,6 +204,8 @@ for userid in userIDs:
         website_to_user_to_average_time[w][userid] = [disabled_visits_vs_time,
                                                       abled_visits_vs_time]
 
+with open("website_to_user_to_website_average_time", 'wb') as f:
+    pickle.dump(website_to_user_to_average_time, f)
     '''
     dd = test_data
     diabled = [i['avg_disabled_sec'] for i in dd]
