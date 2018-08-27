@@ -15,7 +15,7 @@ import os.path
 import time
 from scipy import stats
 import matplotlib.pyplot as plt
-
+from scipy.stats import sem
 '''
 Helpers
 '''
@@ -58,6 +58,14 @@ for user in domain_to_time_per_day:
             elif website not in ["facebook", "youtube"] and d2productivity[website] < 0:
                 user_to_fb_ytb_to_other_unproductive_time_before[user][1] += domain_to_time_per_day[user][website]/1000
 
+print("unproductive time before")
+print(np.nanmedian(list(user_to_total_unproductive_time_before.values())))
+print(np.nanmean(list(user_to_total_unproductive_time_before.values())))
+print(sem(list(user_to_total_unproductive_time_before.values())))
+
+
+with open("user_to_total_unproductive_time_before", "wb") as f:
+    pickle.dump(user_to_total_unproductive_time_before, f)
 
 
 user_to_total_unproductive_time_after = dict()
@@ -252,8 +260,9 @@ print(np.nanmedian(enabled_net_change))
 print(np.nanmedian(disabled_net_change))
 stats.ttest_ind(enabled_net_change, disabled_net_change)
 plt.bar(["enabled", "disabled"], [np.nanmedian(enabled_net_change), np.nanmedian(disabled_net_change)],align='center',
-        yerr = [np.nanstd(enabled_net_change), np.nanstd(disabled_net_change)])
-
+        yerr = [sem(enabled_net_change), sem(disabled_net_change)])
+plt.title("net change in time spent after goal switch")
+plt.ylable("time(s)")
 '''
 print(np.average(list(user_to_fb_ytb_to_other_unproductive_time_before.values())) * 2.7778e-7)
 data_fb_to_others = [np.mean(list(user_to_fb_ytb_to_other_unproductive_time_after[x].values())) for x in user_to_fb_ytb_to_other_unproductive_time_before]
