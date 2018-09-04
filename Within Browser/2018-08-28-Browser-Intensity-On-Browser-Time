@@ -1,0 +1,95 @@
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: total_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 27767.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-6.7524 -0.3434  0.1857  0.5635  2.5870 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.6279   0.7924  
+ Residual               1.2918   1.1366  
+Number of obs: 8454, groups:  email_hash, 1147
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    8.30990    0.03819 2284.74888  217.61   <2e-16 ***
+intensity     -0.09932    0.05339 7599.71759   -1.86   0.0629 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.690
+
+
+
+
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: goal_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 38189.9
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.0206 -0.3221  0.1934  0.5560  3.0188 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 3.269    1.808   
+ Residual               4.228    2.056   
+Number of obs: 8454, groups:  email_hash, 1147
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)    6.0258     0.0778 2434.7506  77.457   <2e-16 ***
+intensity     -0.1899     0.1003 8289.9640  -1.894   0.0583 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.637
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: other_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 31612.1
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-5.8668 -0.2788  0.1865  0.5406  2.7876 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.9883   0.9941  
+ Residual               2.0362   1.4269  
+Number of obs: 8454, groups:  email_hash, 1147
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    7.75976    0.04793 2198.10048 161.911   <2e-16 ***
+intensity     -0.07495    0.06702 7555.63571  -1.118    0.264    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.690

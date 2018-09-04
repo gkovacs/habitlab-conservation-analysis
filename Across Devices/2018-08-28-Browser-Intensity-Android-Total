@@ -1,0 +1,29 @@
+Relevant csv: cross_device_android_df.csv
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: total_time ~ browser_intensity + (1 | email_hash)
+   Data: android_df
+
+REML criterion at convergence: 1524.7
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.6998 -0.4632  0.1041  0.5781  2.3953 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.6402   0.8002  
+ Residual               0.6413   0.8008  
+Number of obs: 576, groups:  email_hash, 71
+
+Fixed effects:
+                  Estimate Std. Error       df t value Pr(>|t|)    
+(Intercept)         9.3526     0.1224 106.0489  76.388   <2e-16 ***
+browser_intensity   0.3261     0.1355 565.6511   2.406   0.0165 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr)
+brwsr_ntnst -0.526
