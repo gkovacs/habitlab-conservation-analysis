@@ -2,3 +2,4 @@
 __pycache__/*
 sessions_for_intervention.csv
 .ipynb_checkpoints
+.Rhistory
