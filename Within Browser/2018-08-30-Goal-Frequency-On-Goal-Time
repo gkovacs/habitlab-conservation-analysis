@@ -1,0 +1,32 @@
+## The frequency setting reduces time spent on that goal! Dataset: 2018-08-30-browser_goal_freq_df.csv
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: time ~ frequency + (1 | email) + (1 | goal)
+   Data: browser_goal_freq_df
+
+REML criterion at convergence: 63877.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.5197 -0.5146  0.1492  0.6705  2.8830 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ email    (Intercept) 0.6516   0.8072  
+ goal     (Intercept) 0.5269   0.7259  
+ Residual             2.4203   1.5557  
+Number of obs: 16658, groups:  email, 1137; goal, 384
+
+Fixed effects:
+                    Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)        5.402e+00  6.315e-02  4.520e+02  85.543  < 2e-16 ***
+frequencyfrequent -7.842e-02  2.700e-02  1.651e+04  -2.904  0.00369 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr)
+frqncyfrqnt -0.211
+
+

@@ -337,3 +337,65 @@ def calculate_user_sec_on_goal_per_day(user):
     total = np.nansum(list(website_to_median_time_spent.values()))
 
     return total
+
+ANDROID = "android"
+BROWSER = "browser" # habitlab goal, i.e. facebook/spend_less_time or custom/spend_less_time_developers.slashdot.org
+BROWSER_DOMAIN = "browser_domain"
+SHARED = "shared"
+PACKAGES = "packages"
+SPEND_LESS_TIME_LENGTH = len("custom/spend_less_time_")
+# Associate users with domain name which will function as our key.
+# Top-level-domain-names that are not pertinent to the application.
+TLDs = ['www', 'aaa', 'abb', 'abc', 'ac', 'aco', 'ad', 'ads', 'ae', 'aeg', 'af', 'afl', 'ag', 'ai', 'aig', 'al', 'am', 'anz', 'ao', 'aol', 'app', 'aq', 'ar', 'art', 'as', 'at', 'au', 'aw', 'aws', 'ax', 'axa', 'az', 'ba', 'bar', 'bb', 'bbc', 'bbt', 'bcg', 'bcn', 'bd', 'be', 'bet', 'bf', 'bg', 'bh', 'bi', 'bid', 'bio', 'biz', 'bj', 'bm', 'bms', 'bmw', 'bn', 'bnl', 'bo', 'bom', 'boo', 'bot', 'box', 'br', 'bs', 'bt', 'buy', 'bv', 'bw', 'by', 'bz', 'bzh', 'ca', 'cab', 'cal', 'cam', 'car', 'cat', 'cba', 'cbn', 'cbs', 'cc', 'cd', 'ceb', 'ceo', 'cf', 'cfa', 'cfd', 'cg', 'ch', 'ci', 'ck', 'cl', 'cm', 'cn', 'co', 'com', 'cr', 'crs', 'csc', 'cu', 'cv', 'cw', 'cx', 'cy', 'cz', 'dad', 'day', 'dds', 'de', 'dev', 'dhl', 'diy', 'dj', 'dk', 'dm', 'dnp', 'do', 'dog', 'dot', 'dtv', 'dvr', 'dz', 'eat', 'ec', 'eco', 'edu', 'ee', 'eg', 'er', 'es', 'esq', 'et', 'eu', 'eus', 'fan', 'fi', 'fit', 'fj', 'fk', 'fly', 'fm', 'fo', 'foo', 'fox', 'fr', 'frl', 'ftr', 'fun', 'fyi', 'ga', 'gal', 'gap', 'gb', 'gd', 'gdn', 'ge', 'gea', 'gf', 'gg', 'gh', 'gi', 'gl', 'gle', 'gm', 'gmo', 'gmx', 'gn', 'goo', 'gop', 'got', 'gov', 'gp', 'gq', 'gr', 'gs', 'gt', 'gu', 'gw', 'gy', 'hbo', 'hiv', 'hk', 'hkt', 'hm', 'hn', 'hot', 'how', 'hr', 'ht', 'hu', 'ibm', 'ice', 'icu', 'id', 'ie', 'ifm', 'il', 'im', 'in', 'inc', 'ing', 'ink', 'int', 'io', 'iq', 'ir', 'is', 'ist', 'it', 'itv', 'jcb', 'jcp', 'je', 'jio', 'jlc', 'jll', 'jm', 'jmp', 'jnj', 'jo', 'jot', 'joy', 'jp', 'ke', 'kfh', 'kg', 'kh', 'ki', 'kia', 'kim', 'km', 'kn', 'kp', 'kpn', 'kr', 'krd', 'kw', 'ky', 'kz', 'la', 'lat', 'law', 'lb', 'lc', 'lds', 'li', 'lk', 'llc', 'lol', 'lpl', 'lr', 'ls', 'lt', 'ltd', 'lu', 'lv', 'ly', 'ma', 'man', 'map', 'mba', 'mc', 'md', 'me', 'med', 'men', 'mg', 'mh', 'mil', 'mit', 'mk', 'ml', 'mlb', 'mls', 'mm', 'mma', 'mn', 'mo', 'moe', 'moi', 'mom', 'mov', 'mp', 'mq', 'mr', 'ms', 'msd', 'mt', 'mtn', 'mtr', 'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nab', 'nba', 'nc', 'ne', 'nec', 'net', 'new', 'nf', 'nfl', 'ng', 'ngo', 'nhk', 'ni', 'nl', 'no', 'now', 'np', 'nr', 'nra', 'nrw', 'ntt', 'nu', 'nyc', 'nz', 'obi', 'off', 'om', 'one', 'ong', 'onl', 'ooo', 'org', 'ott', 'ovh', 'pa', 'pay', 'pe', 'pet', 'pf', 'pg', 'ph', 'phd', 'pid', 'pin', 'pk', 'pl', 'pm', 'pn', 'pnc', 'pr', 'pro', 'pru', 'ps', 'pt', 'pub', 'pw', 'pwc', 'py', 'qa', 'qvc', 're', 'red', 'ren', 'ril', 'rio', 'rip', 'ro', 'rs', 'ru', 'run', 'rw', 'rwe', 'sa', 'sap', 'sas', 'sb', 'sbi', 'sbs', 'sc', 'sca', 'scb', 'sd', 'se', 'ses', 'sew', 'sex', 'sfr', 'sg', 'sh', 'si', 'sj', 'sk', 'ski', 'sky', 'sl', 'sm', 'sn', 'so', 'soy', 'sr', 'srl', 'srt', 'st', 'stc', 'su', 'sv', 'sx', 'sy', 'sz', 'tab', 'tax', 'tc', 'tci', 'td', 'tdk', 'tel', 'tf', 'tg', 'th', 'thd', 'tj', 'tjx', 'tk', 'tl', 'tm', 'tn', 'to', 'top', 'tr', 'trv', 'tt', 'tui', 'tv', 'tvs', 'tw', 'tz', 'ua', 'ubs', 'ug', 'uk', 'uno', 'uol', 'ups', 'us', 'uy', 'uz', 'va', 'vc', 've', 'vet', 'vg', 'vi', 'vig', 'vin', 'vip', 'vn', 'vu', 'wed', 'wf', 'win', 'wme', 'wow', 'ws', 'wtc', 'wtf', 'xin', 'xxx', 'xyz', 'ye', 'you', 'yt', 'yun', 'za', 'zip', 'zm', 'zw']
+def get_name(name, device):
+    """
+    @param name: goal name (package name for Android)
+    @param device: "android" or "browser" or "browser_domain"
+    @return name of goal with subdomains removed and goal annotation removed (i.e. spend_less_time)
+    """
+    if device == ANDROID  and name =="com.google.android.gm" or device == BROWSER and "gmail" in name:
+        return "gmail"
+    name = name.lower()
+    if "custom" in name and device == BROWSER:
+        # strip off the "custom/spend_less_time_"
+        name = name[SPEND_LESS_TIME_LENGTH:]
+    elif device == BROWSER:
+        return name.split('/spend')[0]
+    # Now we have to get juicy part of domain.
+    subs = list(filter(lambda x: x != "android" and x != "google" and x != "apps" and x not in TLDs, name.split('.')))
+    if device == ANDROID: 
+        if len(subs) > 0:
+            return subs[0]
+        return name
+    else:
+        if len(subs) > 0:
+            return subs[len(subs) - 1]    
+        
+def organize_stats(shared_goals, stats, device, counts, user_id):
+    """
+    Organizes that stats object into shared_goals for device.
+    @param shared_goals: dictionary
+    @param stats:  stats object returned from freq_stats
+    @param device: ANDROID or BROWSER
+    """
+    for iso in stats:
+        for freq in stats[iso]:
+            for goal in stats[iso][freq]:
+                name = get_name(goal, device)
+                if name not in shared_goals:
+                    shared_goals[name] = {ANDROID: {PACKAGES:[]} , BROWSER: {PACKAGES:[]} }
+                if goal not in shared_goals[name][device][PACKAGES]:
+                    shared_goals[name][device][PACKAGES].append(goal)
+                    shared_goals[name][device][goal] = {}
+                if iso not in shared_goals[name][device][goal]:
+                    shared_goals[name][device][goal][iso] = freq
+                    if device == BROWSER:
+                        counts[freq] += 1
+                # Before I submitted the update, some apps under the same name wouldn't have the same freq setting.
+                elif shared_goals[name][device][goal][iso] != freq:
+                    shared_goals[name][device][goal][iso] = "both"
+                    counts["both"] += 1
+                if len(shared_goals[name][ANDROID][PACKAGES]) > 0 and len(shared_goals[name][BROWSER][PACKAGES]) > 0:
+                    shared_goals[SHARED].add(name)
+
+

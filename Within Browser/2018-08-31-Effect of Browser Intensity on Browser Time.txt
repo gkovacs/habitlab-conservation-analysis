@@ -1,0 +1,183 @@
+## DATASET: 2018-08-31-browser_intensity_on_time.csv
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: total_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 24134.5
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-6.3575 -0.3384  0.1814  0.5707  2.6222 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.6278   0.7923  
+ Residual               1.2635   1.1241  
+Number of obs: 7395, groups:  email_hash, 1018
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    8.31723    0.06067 4886.45254 137.094   <2e-16 ***
+intensity     -0.02813    0.10681 7317.73254  -0.263    0.792    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.874
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: goal_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 33209.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.9787 -0.3128  0.1834  0.5447  2.8130 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 3.289    1.813   
+ Residual               4.104    2.026   
+Number of obs: 7395, groups:  email_hash, 1018
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept) 6.051e+00  1.172e-01 4.798e+03  51.652   <2e-16 ***
+intensity   8.584e-02  1.976e-01 7.381e+03   0.434    0.664    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.838
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: other_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 27151
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-5.9495 -0.2873  0.1856  0.5498  2.5961 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.8843   0.9404  
+ Residual               1.9135   1.3833  
+Number of obs: 7395, groups:  email_hash, 1018
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    7.77904    0.07394 4799.29601  105.20   <2e-16 ***
+intensity     -0.04445    0.13085 7272.24956   -0.34    0.734    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.879
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: avg_goal_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 17832.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-5.5122 -0.2841  0.0719  0.4226  4.2111 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.9514   0.9754  
+ Residual               0.4589   0.6774  
+Number of obs: 7395, groups:  email_hash, 1018
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    1.90445    0.04685 3399.94584  40.647   <2e-16 ***
+intensity     -0.02240    0.06844 7016.78417  -0.327    0.743    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.725
+
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: avg_freq_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 31853.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.5335 -0.5282  0.0220  0.5109  4.1015 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 3.170    1.780   
+ Residual               3.355    1.832   
+Number of obs: 7395, groups:  email_hash, 1018
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)    4.0279     0.1087 4583.1010   37.04   <2e-16 ***
+intensity     -2.4642     0.1801 7343.9183  -13.69   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.822
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: avg_infreq_time ~ intensity + (1 | email_hash)
+   Data: browser_df
+
+REML criterion at convergence: 31572.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.1935 -0.5045  0.0182  0.5015  3.9953 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 3.430    1.852   
+ Residual               3.182    1.784   
+Number of obs: 7395, groups:  email_hash, 1018
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)    1.6129     0.1083 4374.5335   14.89   <2e-16 ***
+intensity      2.4611     0.1763 7298.4442   13.96   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.808

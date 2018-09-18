@@ -1,0 +1,232 @@
+#intensity: freq_goals/goals
+# dataset: effect_freq_time_spent-2018-8-28.csv
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: total_time ~ intensity + (1 | email_hash)
+   Data: df
+
+REML criterion at convergence: 10043.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-6.2564 -0.3522  0.1533  0.5527  2.6551 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.6832   0.8266  
+ Residual               0.7970   0.8928  
+Number of obs: 3515, groups:  email_hash, 507
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    9.43833    0.05335  952.96980 176.904   <2e-16 ***
+intensity     -0.06096    0.06256 3453.33442  -0.974     0.33    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.620
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: goal_time ~ intensity + (1 | email_hash)
+   Data: df
+
+REML criterion at convergence: 11847.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-6.5102 -0.3375  0.1580  0.5356  3.4802 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 0.9835   0.9917  
+ Residual               1.3577   1.1652  
+Number of obs: 3514, groups:  email_hash, 507
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    8.14370    0.06671  982.12214 122.071   <2e-16 ***
+intensity     -0.16570    0.08111 3480.29935  -2.043   0.0411 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.642
+
+
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: other_time ~ intensity + (1 | email_hash)
+   Data: df
+
+
+
+REML criterion at convergence: 11268.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-5.6494 -0.3994  0.1216  0.5487  3.1430 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 1.225    1.107   
+ Residual               1.097    1.047   
+Number of obs: 3514, groups:  email_hash, 507
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)    8.71588    0.06731  939.94874 129.481   <2e-16 ***
+intensity     -0.02811    0.07411 3406.59853  -0.379    0.705    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.582
+
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: target_time ~ intensity + (1 | email_hash)
+   Data: df
+
+REML criterion at convergence: 13138.7
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.4880 -0.1380 -0.0588 -0.0048  5.9683 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 1.980    1.407   
+ Residual               1.881    1.372   
+Number of obs: 3514, groups:  email_hash, 507
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept) 4.967e-01  8.668e-02 1.029e+03   5.730 1.32e-08 ***
+intensity   3.055e-01  9.686e-02 3.427e+03   3.154  0.00162 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.591
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: avg_goal_time ~ intensity + (1 | email_hash)
+   Data: df
+
+REML criterion at convergence: 11751
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.4141 -0.3782 -0.1058  0.2441  5.9575 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 2.027    1.424   
+ Residual               1.196    1.094   
+Number of obs: 3515, groups:  email_hash, 507
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept) 2.537e+00  7.988e-02 8.865e+02  31.764   <2e-16 ***
+intensity   1.251e-01  7.835e-02 3.335e+03   1.596     0.11    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+          (Intr)
+intensity -0.519
+
+
+
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: target_time ~ avg_goal_time + (1 | email_hash)
+   Data: df
+
+REML criterion at convergence: 13136.9
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.4970 -0.1374 -0.0513 -0.0095  5.9226 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 2.040    1.428   
+ Residual               1.871    1.368   
+Number of obs: 3514, groups:  email_hash, 507
+
+Fixed effects:
+               Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)   4.513e-01  8.856e-02 9.598e+02   5.096 4.18e-07 ***
+avg_goal_time 7.934e-02  2.045e-02 3.432e+03   3.880 0.000106 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr)
+avg_goal_tm -0.601
+
+
+
+
+
+
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: other_time ~ avg_goal_time + (1 | email_hash)
+   Data: df
+
+REML criterion at convergence: 11271.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-5.6376 -0.3995  0.1207  0.5500  3.1416 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ email_hash (Intercept) 1.224    1.107   
+ Residual               1.097    1.047   
+Number of obs: 3514, groups:  email_hash, 507
+
+Fixed effects:
+               Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)   8.700e+00  6.828e-02 8.942e+02 127.427   <2e-16 ***
+avg_goal_time 2.544e-04  1.569e-02 3.434e+03   0.016    0.987    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr)
+avg_goal_tm -0.598

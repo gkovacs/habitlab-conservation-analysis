@@ -1,0 +1,29 @@
+#Dataset: 2018-08-25-
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: time ~ frequency + (1 | email) + (1 | app)
+   Data: goal_freq_df
+
+REML criterion at convergence: 58958.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.2814 -0.5495  0.1270  0.6627  3.7458 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ app      (Intercept) 1.8843   1.3727  
+ email    (Intercept) 0.4555   0.6749  
+ Residual             2.6221   1.6193  
+Number of obs: 15077, groups:  app, 632; email, 507
+
+Fixed effects:
+                    Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)        5.151e+00  7.746e-02  7.930e+02  66.491  < 2e-16 ***
+frequencyfrequent -8.715e-02  2.865e-02  1.494e+04  -3.042  0.00236 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr)
+frqncyfrqnt -0.182
