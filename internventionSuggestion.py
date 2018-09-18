@@ -224,7 +224,8 @@ plt.xlabel("# of acceptance")
 user_to_acc_rate = dict()
 
 for user in user_to_decision:
-    user_to_acc_rate[user] = user_to_num_acc[user]/ len(user_to_decision[user])
+    if len(user_to_decision[user]) >= 7:
+        user_to_acc_rate[user] = user_to_num_acc[user]/ len(user_to_decision[user])
 
 plt.figure()
 plt.hist(list(user_to_acc_rate.values()), alpha=0.5)
@@ -232,26 +233,30 @@ plt.ylabel("# of users")
 plt.xlabel("percentage of acceptance")
 plt.title("Intervention Suggestions")
 
+
+
+
 for user in user_to_decision:
     user_to_decision[user] = sorted(user_to_decision[user], key = lambda x: x["timestamp_local"])
 
 last_seen_to_action = dict()
-
+'''
 for user in user_to_decision:
     timestamps = [x["timestamp"] for x in user_to_decision[user]]
     timestamps = sorted(timestamps)
-    last_seens = np.roll(timestamps, 1) - timestamps
+    last_seens = timestamps - np.roll(timestamps, 1)
     last_seens[0] = -1
     for l in last_seens:
         last_seen_to_action[l] = (user_to_decision[user]["action"] == 'rejected')
 
 plt.figure()
-plt.hist(list(last_seen_to_action.keys()), np.array(list(last_seen_to_action.values()))//)
+#plt.hist(list(last_seen_to_action.keys()), np.array(list(last_seen_to_action.values())))
 plt.ylabel("percentage of acceptance")
 plt.xlabel("time since last one")
 plt.title("Intervention Suggestions")
-
 '''
+
+
 num_acc_to_median_spent_on_goal = dict()
 idx = 0
 for user in user_to_num_acc:
@@ -270,9 +275,31 @@ for user in user_to_num_acc:
 
 plt.figure()
 for num in num_acc_to_median_spent_on_goal:
-    plt.hist(list(num_acc_to_median_spent_on_goal[num]), alpha=0.5)
+    plt.hist(list(num_acc_to_median_spent_on_goal[num]), alpha=0.5, label = str(num))
 
+plt.legend(loc='upper right')
 plt.xlabel("secs on goals domain")
-'''
+
+from scipy import stats
+stats.f_oneway(list(num_acc_to_median_spent_on_goal.values()))
+
+condition_to_median_time_spent = dict()
+for user in users_to_conditions_in_experiment_by_name:
+    if user in user_to_installtime_multiple:
+        if len(user_to_installtime_multiple[line['userid']]) != 1:
+            continue
+    condition = users_to_conditions_in_experiment_by_name.get(user, "none")
+    if condition == "none":
+        continue
+    else:
+        if condition in condition_to_median_time_spent:
+            condition_to_median_time_spent[condition].append(calculate_user_sec_on_goal_per_day(user))
+        else:
+            condition_to_median_time_spent[condition] = [calculate_user_sec_on_goal_per_day(user)]
+
 #plt.axis([0, 10, 0, 600])
 #plt.grid(True)
+
+
+
+

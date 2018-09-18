@@ -55,7 +55,7 @@ for user in users_to_conditions_in_experiment_by_name:
     if users_to_conditions_in_experiment_by_name[user] == 'off':
         not_suggested.append([time_since_install/8.64e+7, int(is_alive)])
         intervention_suggestion.append([time_since_install/ 8.64e+7, int(is_alive), 0])
-    elif users_to_conditions_in_experiment_by_name[user] == 'always':
+    else:
         suggested.append([time_since_install/8.64e+7, int(is_alive), 1])
         intervention_suggestion.append([time_since_install/ 8.64e+7, int(is_alive), 1])
 

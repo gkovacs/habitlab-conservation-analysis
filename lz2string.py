@@ -11,15 +11,18 @@ import pickle
 from urllib.request import urlopen
 # from urllib.parse import urlparse
 import tldextract
-
+from dataUtil import *
 '''
     Parse historic daily visit seconds.
 
 '''
 
 
-with open(r"log_data\user_to_logging_enabled") as lc:
-    userIDs = set(json.load(lc))
+#with open(r"log_data\user_to_logging_enabled") as lc:
+#    userIDs = set(json.load(lc))
+
+raw = parse_url_as_json("http://localhost:5000/get_user_to_is_logging_enabled")
+userIDs = [x for x in raw if raw[x]]
 
 # http://localhost:5000/printcollection?collection=4b4f9c958b5ac79e3deb470c_synced:history_vars
 
@@ -35,8 +38,6 @@ for userid in userIDs:
 
     f = urlopen(link).read()
     parsed_raw = json.loads(f.decode('utf-8'))
-
-
 
     if len(parsed_raw) == 0: continue
     # print(parsed_raw)

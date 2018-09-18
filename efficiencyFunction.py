@@ -34,10 +34,34 @@ for intervention in intervention_to_attrition_rate:
 
 interventions_of_concern = dict()
 for intervention in intervention_to_utility:
-    if intervention.split('/')[0] in ["facebook", "amazon", "youtube", "twitter", "netflix", "reddit", "gmail"]:
+    if intervention.split('_')[0] != "generated":
         interventions_of_concern[intervention] = intervention_to_utility[intervention]
-sorted_keys = sorted(interventions_of_concern.keys())
-plt.barh(range(len(interventions_of_concern)), list([interventions_of_concern[x] for x in sorted_keys]), align='center')
-plt.yticks(range(len(interventions_of_concern)), sorted_keys)
+    else:
+        new_intervention = "generated/" + intervention.split('/')[1]
+        if new_intervention not in interventions_of_concern:
+            interventions_of_concern["generated/" + intervention.split('/')[1]] = intervention_to_utility[intervention]
+        else:
+            interventions_of_concern["generated/" + intervention.split('/')[1]] += intervention_to_utility[intervention]
+website_to_intervention = dict()
+for line in interventions_of_concern:
+    website = line.split("/")[0]
+    website_to_intervention[website] = dict()
+for line in interventions_of_concern:
+    website = line.split("/")[0]
+    website_to_intervention[website][line] = interventions_of_concern[line]
 
-plt.show()
+for website in website_to_intervention:
+    sorted_keys = sorted(website_to_intervention[website].keys())
+
+    plt.figure()
+    plt.barh(range(len(website_to_intervention[website])),
+             list([website_to_intervention[website][x] for x in sorted_keys]), align='center')
+    plt.yticks(range(len(website_to_intervention[website])), sorted_keys)
+
+for website in website_to_intervention:
+    website_to_intervention[website] = sorted(website_to_intervention[website].items(), key = lambda x: x[1])
+
+for website in website_to_intervention:
+    with open("websites_to_utility\\" + website + '.json', 'w') as f:
+        json.dump(dict(website_to_intervention[website]), f)
+
