@@ -260,6 +260,40 @@ def clean_session_log(visits_on_w_per_day):
 
     return visits_on_w_per_day
 
+def get_total_number_of_sessions_for_user(userid):
+    raw = 'http://localhost:5001/printcollection?collection=' + userid + '_synced:seconds_on_domain_per_session'
+    # get the largest value on the same days with the same 'key' and 'key2'
+    # first sort into websistes
+    total_number_of_session = 0
+    website_to_datum = dict()
+    for line in raw:
+        if line['key'] not in website_to_datum:
+            website_to_datum[line['key']] = [line]
+        else:
+            website_to_datum[line['key']].append(line)
+
+    for website in website_to_datum:
+
+        largest = dict()
+        pop_list = []
+        for i, line in enumerate(website_to_datum[website]):
+            try:
+                if largest[line["key2"]][1] > line["val"]:
+                    pop_list.append(i)
+                else:
+                    pop_list.append(largest[line["key2"]][0])
+                    largest[line["key2"]] = (i, line["val"])
+            except KeyError:
+                largest[line["key2"]] = (i, line["val"])
+        # pop all
+        pop_list = sorted(pop_list, reverse=True)
+        for p in pop_list:
+            website_to_datum[website].pop(p)
+
+        total_number_of_session += len(website_to_datum[website])
+
+    return total_number_of_session
+
 def calculate_user_sec_on_goal_per_day(user):
     '''
     Calculates the median time per day spent on goal website for a user.
