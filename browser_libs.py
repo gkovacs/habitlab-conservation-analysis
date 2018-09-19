@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# md5: 4c549147818d32063921e34b901c140a
+# md5: bed905f42fd7d3eb323fc145af835671
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -440,6 +440,10 @@ def get_sessions_for_user(user):
 
 
 
+#print(get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2'))
+
+
+
 def group_sessions_by_domain(session_info_list):
   output = {}
   for item in session_info_list:
@@ -458,19 +462,47 @@ def group_sessions_by_epoch(session_info_list):
     output[epoch].append(item)
   return output
 
+def get_total_time_on_other_goal_domains(session_info_list_for_day, domain_to_exclude):
+  output = 0
+  for domain,session_info_list in session_info_list_for_day.items():
+    if domain == domain_to_exclude:
+      continue
+    for session_info in session_info_list:
+      is_goal_frequent = session_info['is_goal_frequent']
+      is_goal_enabled = session_info['is_goal_enabled']
+      duration = session_info['duration']
+      if is_goal_enabled != True:
+        continue
+      output += duration
+  return output
+
+def get_total_time_when_goal_is_enabled(session_info_list):
+  output = 0
+  for session_info in session_info_list:
+    is_goal_frequent = session_info['is_goal_frequent']
+    is_goal_enabled = session_info['is_goal_enabled']
+    duration = session_info['duration']
+    if is_goal_enabled != True:
+      continue
+    output += duration
+  return output
+
 def get_sessions_for_user_by_day_and_goal(user):
+  output = []
   session_info_list = get_sessions_for_user(user)
   for epoch,session_info_list_for_day in group_sessions_by_epoch(session_info_list).items():
     for domain,session_info_list_for_domain in group_sessions_by_domain(session_info_list_for_day).items():
-      other_goal_domain_total_time = 0
-      
+      this_goal_domain_total_time = get_total_time_when_goal_is_enabled(session_info_list)
+      other_goal_domain_total_time = get_total_time_on_other_goal_domains(session_info_list_for_day, domain)
       print(epoch)
       print(domain)
+      print(this_goal_domain_total_time)
+      print(other_goal_domain_total_time)
       print(session_info_list)
       return
   return
 
-get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2')
+#get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2')
 
 
 
