@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import pickle
 import os.path
-
+from dataUtil import *
 def linear(x, a, b):
     return a * x + b
 
@@ -77,8 +77,8 @@ def get_time_stamp(item):
     return item["timestamp"]
 
 
-with open("get_user_to_all_install_times.json") as lc:
-    installtime = json.load(lc)
+
+installtime = parse_url_as_json("http://localhost:5000/get_user_to_all_install_times")
 installtime = {k: min(installtime[k]) for k in installtime}
 # read a unique user list
 

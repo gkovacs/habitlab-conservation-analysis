@@ -42,6 +42,9 @@ def is_habitlab_on(timestamp, logs):
             if the habit lab is on at that timestamp. Assuming that log has been
             sorted according to the timestamp.
     '''
+    if logs == []:
+        return False
+
     timestamp_list = [x["timestamp_local"] for x in logs]
     index = bisection(timestamp_list,
                       timestamp)  # [x["timestamp"] for x in log]the index of which the timestamp just falls after
@@ -257,6 +260,42 @@ def clean_session_log(visits_on_w_per_day):
 
     return visits_on_w_per_day
 
+def get_total_number_of_sessions_for_user(userid):
+    #print(userid)
+    raw = parse_url_as_json('http://localhost:5001/printcollection?collection=' + userid + '_synced:seconds_on_domain_per_session')
+    # get the largest value on the same days with the same 'key' and 'key2'
+    # first sort into websistes
+    total_number_of_session = 0
+    website_to_datum = dict()
+    for line in raw:
+        #print(line)
+        if line['key'] not in website_to_datum:
+            website_to_datum[line['key']] = [line]
+        else:
+            website_to_datum[line['key']].append(line)
+
+    for website in website_to_datum:
+
+        largest = dict()
+        pop_list = []
+        for i, line in enumerate(website_to_datum[website]):
+            try:
+                if largest[line["key2"]][1] > line["val"]:
+                    pop_list.append(i)
+                else:
+                    pop_list.append(largest[line["key2"]][0])
+                    largest[line["key2"]] = (i, line["val"])
+            except KeyError:
+                largest[line["key2"]] = (i, line["val"])
+        # pop all
+        pop_list = sorted(pop_list, reverse=True)
+        for p in pop_list:
+            website_to_datum[website].pop(p)
+
+        total_number_of_session += len(website_to_datum[website])
+
+    return total_number_of_session
+
 def calculate_user_sec_on_goal_per_day(user):
     '''
     Calculates the median time per day spent on goal website for a user.
@@ -294,7 +333,7 @@ def calculate_user_sec_on_goal_per_day(user):
             website_to_active_session[website] = [x for x in website_to_sessions[website]
                                                   if is_habitlab_on(x["timestamp"], website_to_goal[website])]
 
-    website_to_median_time_spent = {x: np.nanmedian([y["timestamp"] for y in website_to_active_session[x]])
+    website_to_median_time_spent = {x: np.nanmedian([y["val"] for y in website_to_active_session[x]])
                                     for x in website_to_active_session}
 
     total = np.nansum(list(website_to_median_time_spent.values()))
