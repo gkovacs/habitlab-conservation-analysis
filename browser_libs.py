@@ -502,9 +502,19 @@ def get_sessions_for_user_by_day_and_goal(user):
       return
   return
 
+def get_did_user_finish_onboarding(user):
+
+  raw = get_collection_for_user(user, "logs:pages")
+  #print(raw)
+  for line in raw:
+    if line.get("reason", "") == "onboarding-complete":
+      return True
+  return False
 #get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2')
 
-
+def get_last_intervention_seen(user):
+  raw = json.loads(req.urlopen("http://localhost:5001/get_last_intervention_seen?userid="+ user).read().decode("utf-8"))
+  return raw
 
 # def get_days_and_sessions_for_user(user):
 #   session_info_list = get_sessions_for_user(user)

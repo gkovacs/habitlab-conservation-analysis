@@ -261,12 +261,14 @@ def clean_session_log(visits_on_w_per_day):
     return visits_on_w_per_day
 
 def get_total_number_of_sessions_for_user(userid):
-    raw = 'http://localhost:5001/printcollection?collection=' + userid + '_synced:seconds_on_domain_per_session'
+    #print(userid)
+    raw = parse_url_as_json('http://localhost:5001/printcollection?collection=' + userid + '_synced:seconds_on_domain_per_session')
     # get the largest value on the same days with the same 'key' and 'key2'
     # first sort into websistes
     total_number_of_session = 0
     website_to_datum = dict()
     for line in raw:
+        #print(line)
         if line['key'] not in website_to_datum:
             website_to_datum[line['key']] = [line]
         else:
