@@ -1,7 +1,17 @@
 #!/usr/bin/env python
-# md5: bed905f42fd7d3eb323fc145af835671
+# md5: 12c56b3b0b6797914d4e85b1b8f7e796
 #!/usr/bin/env python
 # coding: utf-8
+
+
+
+import os
+if 'R_HOME' not in os.environ:
+  os.environ['R_HOME'] = '/usr/lib/R'
+
+
+
+get_ipython().run_line_magic('load_ext', 'rpy2.ipython')
 
 
 
@@ -13,6 +23,7 @@ from getsecret import getsecret
 import urllib.parse
 import moment
 import datetime
+import pandas as pd
 
 
 
@@ -363,6 +374,7 @@ def get_domain_for_goal(goal_name):
 
 
 
+@memoize
 def get_sessions_for_user(user):
   seconds_on_domain_per_session = get_collection_for_user(user, 'synced:seconds_on_domain_per_session')
   interventions_active_for_domain_and_session = get_collection_for_user(user, 'synced:interventions_active_for_domain_and_session')
@@ -430,6 +442,10 @@ def get_sessions_for_user(user):
 
 
 
+#print(get_sessions_for_user('c11e5f2d93f249b5083989b2'))
+
+
+
 #all_sessions_info_list = []
 #for user in get_valid_user_list():
 #  print(user)
@@ -464,7 +480,7 @@ def group_sessions_by_epoch(session_info_list):
 
 def get_total_time_on_other_goal_domains(session_info_list_for_day, domain_to_exclude):
   output = 0
-  for domain,session_info_list in session_info_list_for_day.items():
+  for domain,session_info_list in group_sessions_by_domain(session_info_list_for_day).items():
     if domain == domain_to_exclude:
       continue
     for session_info in session_info_list:
@@ -487,22 +503,155 @@ def get_total_time_when_goal_is_enabled(session_info_list):
     output += duration
   return output
 
+def get_is_goal_enabled_from_session_info_list(session_info_list):
+  output = None
+  for session_info in session_info_list:
+    is_goal_frequent = session_info['is_goal_frequent']
+    is_goal_enabled = session_info['is_goal_enabled']
+    if output == None:
+      output = is_goal_enabled
+    elif output != is_goal_enabled:
+      return 'inconsistent'
+  return output
+
+def get_is_goal_frequent_from_session_info_list(session_info_list):
+  output = None
+  for session_info in session_info_list:
+    is_goal_frequent = session_info['is_goal_frequent']
+    is_goal_enabled = session_info['is_goal_enabled']
+    if output == None:
+      output = is_goal_frequent
+    elif output != is_goal_frequent:
+      return 'inconsistent'
+  return output
+
+#def get_is_goal_frequent
+
 def get_sessions_for_user_by_day_and_goal(user):
   output = []
   session_info_list = get_sessions_for_user(user)
-  for epoch,session_info_list_for_day in group_sessions_by_epoch(session_info_list).items():
+  sessions_grouped_by_epoch = group_sessions_by_epoch(session_info_list)
+  epoch_list = sessions_grouped_by_epoch.keys()
+  first_epoch_for_user = max(epoch_list)
+  last_epoch_for_user = min(epoch_list)
+  for epoch,session_info_list_for_day in sessions_grouped_by_epoch.items():
+    info_for_epoch = {}
+    info_for_epoch['epoch'] = epoch
+    info_for_epoch['days_since_install'] = epoch - first_epoch_for_user
+    info_for_epoch['days_until_last'] = last_epoch_for_user - epoch
+    info_for_epoch['domains_and_sessions'] = []
     for domain,session_info_list_for_domain in group_sessions_by_domain(session_info_list_for_day).items():
-      this_goal_domain_total_time = get_total_time_when_goal_is_enabled(session_info_list)
+      info_for_domain = {}
+      info_for_domain['domain'] = domain
+      this_goal_domain_total_time = get_total_time_when_goal_is_enabled(session_info_list_for_domain)
       other_goal_domain_total_time = get_total_time_on_other_goal_domains(session_info_list_for_day, domain)
-      print(epoch)
-      print(domain)
-      print(this_goal_domain_total_time)
-      print(other_goal_domain_total_time)
-      print(session_info_list)
-      return
-  return
+      info_for_domain['time_on_domain_today'] = this_goal_domain_total_time
+      info_for_domain['time_on_other_goal_domains_today'] = other_goal_domain_total_time
+      info_for_domain['is_goal_enabled'] = get_is_goal_enabled_from_session_info_list(session_info_list_for_domain)
+      info_for_domain['is_goal_frequent'] = get_is_goal_frequent_from_session_info_list(session_info_list_for_domain)
+      info_for_domain['session_info_list_for_domain'] = session_info_list_for_domain
+      info_for_epoch['domains_and_sessions'].append(info_for_domain)
+      #print(json.dumps(info_for_epoch))
+      #print(epoch)
+      #print(domain)
+      #print(this_goal_domain_total_time)
+      #print(other_goal_domain_total_time)
+      #print(session_info_list_for_domain)
+      #return
+    output.append(info_for_epoch)
+  return output
 
 #get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2')
+
+
+
+#print(get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2'))
+
+
+
+def get_sessions_for_user_by_day_and_goal_for_all_users():
+  output = []
+  for user in get_valid_user_list():
+    print(user)
+    info_for_user = {}
+    info_for_user['user'] = user
+    info_for_user['days_domains_and_sessions'] = get_sessions_for_user_by_day_and_goal(user)
+    output.append(info_for_user)
+  return output
+
+
+all_session_info = get_sessions_for_user_by_day_and_goal_for_all_users()
+
+
+
+import json
+
+json.dump(all_session_info, open('browser_all_session_info_sept18.json', 'w'))
+
+
+
+def convert_list_of_dicts_into_dataframe(dict_list):
+  output = {}
+  for keyname in dict_list[0].keys():
+    output[keyname] = []
+  for item in dict_list:
+    for k,v in item.items():
+      output[k].append(v)
+  return pd.DataFrame.from_dict(output)
+
+#print(convert_list_of_dicts_into_dataframe([
+#  {'a': 3, 'b': 5},
+#  {'a': 4, 'b': 6}
+#]))
+
+
+
+def make_dataframe_days():
+  sessions_for_user_by_day_and_goal_for_all_users = get_sessions_for_user_by_day_and_goal_for_all_users()
+  output = []
+  for sessions_for_user_by_day_and_goal in sessions_for_user_by_day_and_goal_for_all_users:
+    user = sessions_for_user_by_day_and_goal['user']
+    for day_domains_and_sessions in sessions_for_user_by_day_and_goal['days_domains_and_sessions']:
+      epoch = day_domains_and_sessions['epoch']
+      for domain_and_sessions in day_domains_and_sessions['domains_and_sessions']:
+        domain = domain_and_sessions['domain']
+        time_on_domain_today = domain_and_sessions['time_on_domain_today']
+        time_on_other_goal_domains_today = domain_and_sessions['time_on_other_goal_domains_today']
+        is_goal_enabled = domain_and_sessions['is_goal_enabled']
+        is_goal_frequent = domain_and_sessions['is_goal_frequent']
+        output.append({
+          'user': user,
+          'epoch': epoch,
+          'domain': domain,
+          'time_on_domain_today': time_on_domain_today,
+          'time_on_other_goal_domains_today': time_on_other_goal_domains_today,
+          'is_goal_enabled': is_goal_enabled,
+          'is_goal_frequent': is_goal_frequent,
+        })
+  return convert_list_of_dicts_into_dataframe(output)
+
+#df = make_dataframe_days()
+#print(make_dataframe_days())
+
+
+
+#df.to_csv('browser_time_on_domains_sept18.csv')
+
+
+
+#%%R -i df -w 5 -h 5 --units in -r 200
+
+#install.packages('ez')
+#install.packages('lme4')
+
+#library(lme4)
+#library(sjPlot)
+#library(lmerTest)
+#library(ez)
+
+
+
+
 
 
 
