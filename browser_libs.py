@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# md5: 7c15185422d69e64d2c905952f6d6460
+# md5: acac6a6f19209c38f4a04470f33dd3cd
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -227,28 +227,34 @@ function timestamp_to_epoch(timestamp) {
 '''
 
 def convert_date_to_epoch(date):
-  start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  #start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  start_of_epoch = moment.now().replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
   year = int(date[0:4])
   month = int(date[4:6])
   day = int(date[6:8])
-  date_moment = moment.now().timezone("US/Pacific").replace(years=year, months=month, days=day, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  #date_moment = moment.now().timezone("US/Pacific").replace(years=year, months=month, days=day, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  date_moment = moment.now().replace(years=year, months=month, days=day, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
   return date_moment.diff(start_of_epoch).days
 
 def convert_epoch_to_date(epoch):
-  start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  #start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  start_of_epoch = moment.now().replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
   start_of_epoch.add(days=epoch)
   return start_of_epoch.format('YYYYMMDD')
 
 def timestamp_to_epoch(timestamp):
-  start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
-  return moment.unix(timestamp).timezone("US/Pacific").diff(start_of_epoch).days
+  #start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  #return moment.unix(timestamp).timezone("US/Pacific").diff(start_of_epoch).days
+  start_of_epoch = moment.now().replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  return moment.unix(timestamp).diff(start_of_epoch).days
 
 def timestamp_to_isoweek(timestamp):
   isoWeek = int(datetime.datetime.fromtimestamp(timestamp/1000).isocalendar()[1]) 
   return isoWeek
 
 def epoch_to_isoweek(epoch):
-  start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  #start_of_epoch = moment.now().timezone("US/Pacific").replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
+  start_of_epoch = moment.now().replace(years=2016, months=1, days=1, hours=0, minutes=0, seconds=0, milliseconds=0, microseconds=0)
   start_of_epoch.add(days=epoch)
   timestamp_seconds = start_of_epoch.epoch()
   isoWeek = int(datetime.datetime.fromtimestamp(timestamp_seconds).isocalendar()[1])
@@ -268,6 +274,7 @@ def epoch_to_isoweek(epoch):
 
 
 
+'''
 @memoize
 def get_frequency_info_for_user_epoch(user, epochnum):
   # returns a dictionary mapping goal name -> 1 if frequent, 0 if infrequent
@@ -299,6 +306,42 @@ def get_frequency_info_for_user_epoch(user, epochnum):
     #print(algorithm_info)
     #print(item)
   return output
+'''
+
+@memoize
+def get_frequency_info_for_user_epoch(user, epochnum):
+  # returns a dictionary mapping goal name -> 1 if frequent, 0 if infrequent
+  isoweek_input = epoch_to_isoweek(epochnum)
+  goal_frequencies = get_collection_for_user(user, 'synced:goal_frequencies')
+  output = {}
+  conflict_info_list = []
+  goal_frequencies.sort(key=lambda x: x['timestamp'])
+  for item in goal_frequencies:
+    timestamp_local = item['timestamp_local']
+    isoweek_local = timestamp_to_isoweek(timestamp_local)
+    algorithm_info = json.loads(item['val'])
+    algorithm_name = algorithm_info['algorithm']
+    onweeks = algorithm_info['onweeks']
+    timestamp = algorithm_info['timestamp']
+    if algorithm_name == 'isoweek_random':
+      is_frequent = onweeks[isoweek_input] == 1
+    elif algorithm_name == 'isoweek_alternating':
+      is_frequent = isoweek_input % 2 == onweeks
+    else:
+      raise Exception('unknown frequency selection algorithm ' + algorithm)
+    goal = item['key']
+    #if goal in output:
+    #  conflict_info = {'item': item, 'existing_is_frequent': output[goal], 'is_frequent': is_frequent}
+    #  conflict_info_list.append(conflict_info)
+    #  continue
+    output[goal] = is_frequent
+    #print(goal)
+    #print(is_frequent)
+    #print(algorithm_info)
+    #print(item)
+  return output
+
+
 
 def get_is_goal_frequent_for_user_on_domain_at_epoch(user, target_domain, epochnum):
   goal_to_frequency_info = get_frequency_info_for_user_epoch(user, epochnum)
@@ -460,19 +503,27 @@ def get_sessions_for_user(user):
     interventions_active_info = None
     interventions_active_list = None
     intervention_active = None
+    have_intervention_info = False
+    is_preview_mode = False
+    is_suggestion_mode = False
     if (domain in domain_to_session_id_to_intervention_info) and (session_id in domain_to_session_id_to_intervention_info[domain]):
       interventions_active_info = domain_to_session_id_to_intervention_info[domain][session_id]
       interventions_active_list = json.loads(interventions_active_info['val'])
       if len(interventions_active_list) > 0:
         intervention_active = interventions_active_list[0]
+        is_preview_mode = get_is_intervention_preview_mode(user, intervention_active, session_id)
+        is_suggestion_mode = get_is_intervention_suggestion_mode(user, intervention_active, session_id)
     goals_enabled = get_goals_enabled_for_user_at_timestamp(user, timestamp_local)
     is_goal_enabled = get_is_goal_enabled_for_user_on_domain_at_timestamp(user, domain, timestamp_local)
     is_goal_frequent = get_is_goal_frequent_for_user_on_domain_at_epoch(user, domain, epoch_local)
     goal_to_frequency_info = get_frequency_info_for_user_epoch(user, epoch_local)
     output.append({
       'domain': domain,
+      'session_id': session_id,
       'is_goal_enabled': is_goal_enabled,
       'is_goal_frequent': is_goal_frequent,
+      'is_preview_mode': is_preview_mode,
+      'is_suggestion_mode': is_suggestion_mode,
       'intervention_active': intervention_active,
       'duration': duration,
       'timestamp_local': timestamp_local,
@@ -497,7 +548,53 @@ def get_sessions_for_user(user):
   #  print(duration)
   return output
 
+def get_is_intervention_preview_mode(user, intervention_name, session_id):
+  intervention_info_list = get_intervention_info_list_for_user_intervention_session_id(user, intervention_name, session_id)
+  for x in intervention_info_list:
+    if 'is_preview_mode' in x and x['is_preview_mode'] == True:
+      return True
+  return False
+
+def get_is_intervention_suggestion_mode(user, intervention_name, session_id):
+  intervention_info_list = get_intervention_info_list_for_user_intervention_session_id(user, intervention_name, session_id)
+  for x in intervention_info_list:
+    if 'is_suggestion_mode' in x and x['is_suggestion_mode'] == True:
+      return True
+  return False
+
+def have_intervention_info_for_session_id(user, intervention_name, session_id):
+  intervention_info_list = get_intervention_info_list_for_user_intervention_session_id(user, intervention_name, session_id)
+  return len(intervention_info_list) > 0
+
+def get_intervention_info_list_for_user_intervention_session_id(user, intervention_name, session_id):
+  session_to_intervention_info_list = get_session_id_to_intervention_info_list_for_user_and_intervention(user, intervention_name)
+  if session_id not in session_to_intervention_info_list:
+    return []
+  return session_to_intervention_info_list[session_id]
+
+@memoize
+def get_session_id_to_intervention_info_list_for_user_and_intervention(user, intervention_name):
+  output = {}
+  intervention_info_list = get_collection_for_user(user, intervention_name.replace('/', ':'))
+  for x in intervention_info_list:
+    if 'session_id' not in x:
+      continue
+    session_id = x['session_id']
+    if session_id not in output:
+      output[session_id] = []
+    output[session_id].append(x)
+  return output
+
+def get_intervention_info_for_user_and_session(user, intervention_name, session_id):
+  intervention_collection = get_collection_for_user(user, intervention_name.replace('/', ':'))
+  print(intervention_collection)
+
 #print(get_sessions_for_user('c11e5f2d93f249b5083989b2'))
+#for session_info in get_sessions_for_user('c11e5f2d93f249b5083989b2'):
+#  print(session_info)
+#  break
+#print(get_intervention_info_for_user_and_session('c11e5f2d93f249b5083989b2', 'generated_www.tumblr.com/toast_notifications', 0))
+#print(get_session_id_to_intervention_info_list_for_user_and_intervention('c11e5f2d93f249b5083989b2', 'generated_www.tumblr.com/toast_notifications'))
 
 
 
@@ -729,9 +826,6 @@ def get_sessions_for_user_by_day_and_goal(user):
   return output
 
 #get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2')
-
-
-
 
 
 
