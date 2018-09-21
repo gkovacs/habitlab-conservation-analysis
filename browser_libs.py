@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# md5: 58084f6d0a9d9002d642509e12378d1b
+# md5: 7c15185422d69e64d2c905952f6d6460
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -452,6 +452,7 @@ def get_sessions_for_user(user):
     timestamp_local_last = item['timestamp_local_last']
     timestamp = item['timestamp']
     timestamp_last = item['timestamp_last']
+    duration = item['duration']
     epoch_local = timestamp_to_epoch(timestamp_local)
     epoch_local_last = timestamp_to_epoch(timestamp_local_last)
     epoch = timestamp_to_epoch(timestamp)
@@ -597,6 +598,94 @@ def get_is_goal_frequent_from_session_info_list(session_info_list):
 
 #def get_is_goal_frequent
 
+@memoize
+def get_domain_to_epoch_to_time_for_user(user):
+  seconds_on_domain_per_day_items = get_collection_for_user(user, 'synced:seconds_on_domain_per_day')
+  output = {}
+  for item in seconds_on_domain_per_day_items:
+    domain = item['key']
+    epoch = item['key2']
+    duration = item['val']
+    if domain not in output:
+      output[domain] = {}
+    if epoch not in output[domain]:
+      output[domain][epoch] = duration
+    output[domain][epoch] = max(duration, output[domain][epoch])
+  return output
+  #print(seconds_on_domain_per_day_items[0])
+
+@memoize
+def get_epoch_to_domain_to_time_for_user(user):
+  seconds_on_domain_per_day_items = get_collection_for_user(user, 'synced:seconds_on_domain_per_day')
+  output = {}
+  for item in seconds_on_domain_per_day_items:
+    domain = item['key']
+    epoch = item['key2']
+    duration = item['val']
+    if epoch not in output:
+      output[epoch] = {}
+    if domain not in output[epoch]:
+      output[epoch][domain] = duration
+    output[epoch][domain] = max(duration, output[epoch][domain])
+  return output
+
+def get_time_on_domain_on_epoch_for_user(user, domain, epoch):
+  epoch_to_domain_to_time = get_epoch_to_domain_to_time_for_user(user)
+  if epoch not in epoch_to_domain_to_time:
+    return 0
+  if domain not in epoch_to_domain_to_time[epoch]:
+    return 0
+  return epoch_to_domain_to_time[epoch][domain]
+
+#print(get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2'))
+#print(get_domain_to_epoch_to_time_for_user('c11e5f2d93f249b5083989b2'))
+#print(get_time_on_domain_on_epoch_for_user('c11e5f2d93f249b5083989b2', 'www.cnn.com', 953)) # 75
+
+def get_time_on_all_other_domains_on_epoch_for_user(user, target_domain, epoch):
+  epoch_to_domain_to_time = get_epoch_to_domain_to_time_for_user(user)
+  if epoch not in epoch_to_domain_to_time:
+    return 0
+  domain_to_time = epoch_to_domain_to_time[epoch]
+  output = 0
+  for domain,time in domain_to_time.items():
+    if domain == target_domain:
+      continue
+    output += time
+  return output
+
+def get_time_on_epoch_on_domains_in_set_for_user_except(user, epoch, enabled_domains_set, target_domain):
+  epoch_to_domain_to_time = get_epoch_to_domain_to_time_for_user(user)
+  if epoch not in epoch_to_domain_to_time:
+    return 0
+  domain_to_time = epoch_to_domain_to_time[epoch]
+  output = 0
+  for domain,time in domain_to_time.items():
+    if domain == target_domain:
+      continue
+    if domain not in enabled_domains_set:
+      continue
+    output += time
+  return output
+
+def difference_ratio(a, b):
+  diff = abs(a - b)
+  smaller = min(abs(a), abs(b))
+  if smaller == 0:
+    return 1
+  return diff / smaller
+
+def get_enabled_goal_domains_set_in_session_info_list(session_info_list):
+  #output = []
+  output_set = set()
+  for session_info in session_info_list:
+    is_goal_enabled = session_info['is_goal_enabled']
+    domain = session_info['domain']
+    if is_goal_enabled:
+      if domain not in output_set:
+        output_set.add(domain)
+        #output.append(domain)
+  return output_set
+
 def get_sessions_for_user_by_day_and_goal(user):
   output = []
   session_info_list = get_sessions_for_user(user)
@@ -612,6 +701,7 @@ def get_sessions_for_user_by_day_and_goal(user):
     info_for_epoch['days_since_install'] = epoch - first_epoch_for_user
     info_for_epoch['days_until_last'] = last_epoch_for_user - epoch
     info_for_epoch['domains_and_sessions'] = []
+    enabled_domains_set = get_enabled_goal_domains_set_in_session_info_list(session_info_list_for_day)
     for domain,session_info_list_for_domain in group_sessions_by_domain(session_info_list_for_day).items():
       info_for_domain = {}
       info_for_domain['domain'] = domain
@@ -619,8 +709,11 @@ def get_sessions_for_user_by_day_and_goal(user):
       other_goal_domain_total_time = get_total_time_on_other_goal_domains(session_info_list_for_day, domain)
       other_all_domain_total_time = get_total_time_on_all_other_domains(session_info_list_for_day, domain)
       info_for_domain['time_on_domain_today'] = this_goal_domain_total_time
+      info_for_domain['time_on_domain_today_ref'] = get_time_on_domain_on_epoch_for_user(user, domain, epoch)
       info_for_domain['time_on_all_other_domains_today'] = other_all_domain_total_time
+      info_for_domain['time_on_all_other_domains_today_ref'] = get_time_on_all_other_domains_on_epoch_for_user(user, domain, epoch)
       info_for_domain['time_on_other_goal_domains_today'] = other_goal_domain_total_time
+      info_for_domain['time_on_other_goal_domains_today_ref'] = get_time_on_epoch_on_domains_in_set_for_user_except(user, epoch, enabled_domains_set, domain)
       info_for_domain['is_goal_enabled'] = get_is_goal_enabled_from_session_info_list(session_info_list_for_domain)
       info_for_domain['is_goal_frequent'] = get_is_goal_frequent_from_session_info_list(session_info_list_for_domain)
       info_for_domain['session_info_list_for_domain'] = session_info_list_for_domain
@@ -639,7 +732,7 @@ def get_sessions_for_user_by_day_and_goal(user):
 
 
 
-#print(get_sessions_for_user_by_day_and_goal('c11e5f2d93f249b5083989b2'))
+
 
 
 
@@ -655,13 +748,9 @@ def get_sessions_for_user_by_day_and_goal_for_all_users():
   return output
 
 
-all_session_info = get_sessions_for_user_by_day_and_goal_for_all_users()
 
 
 
-import json
-
-json.dump(all_session_info, open('browser_all_session_info_sept18_v2.json', 'w'))
 
 
 
